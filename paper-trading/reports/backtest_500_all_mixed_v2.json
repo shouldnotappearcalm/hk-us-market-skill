@@ -1,0 +1,328 @@
+{
+  "summary": {
+    "requested_min_success": 500,
+    "scanned_symbols": 560,
+    "success_count": 543,
+    "failure_count": 17,
+    "success_rate_on_scanned": 0.9696,
+    "avg_return_pct": 14.7813,
+    "median_return_pct": 7.4703,
+    "avg_max_drawdown_pct": 29.3737,
+    "success_by_market": {
+      "US": 265,
+      "HK": 278
+    },
+    "scanned_by_market": {
+      "US": 280,
+      "HK": 280
+    },
+    "generated_at": "2026-04-17 01:03:52"
+  },
+  "top_10": [
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 1332073.86,
+      "total_return_pct": 1232.0739,
+      "max_drawdown_pct": 51.1628,
+      "symbol": "0326.HK",
+      "ticker": "0326.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 929993.37,
+      "total_return_pct": 829.9934,
+      "max_drawdown_pct": 31.0924,
+      "symbol": "0290.HK",
+      "ticker": "0290.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 449438.05,
+      "total_return_pct": 349.438,
+      "max_drawdown_pct": 54.0323,
+      "symbol": "0080.HK",
+      "ticker": "0080.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 433789.95,
+      "total_return_pct": 333.7899,
+      "max_drawdown_pct": 40.0,
+      "symbol": "0199.HK",
+      "ticker": "0199.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 423076.82,
+      "total_return_pct": 323.0768,
+      "max_drawdown_pct": 75.3125,
+      "symbol": "0022.HK",
+      "ticker": "0022.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 397332.59,
+      "total_return_pct": 297.3326,
+      "max_drawdown_pct": 46.2311,
+      "symbol": "0108.HK",
+      "ticker": "0108.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 327159.11,
+      "total_return_pct": 227.1591,
+      "max_drawdown_pct": 70.1884,
+      "symbol": "0167.HK",
+      "ticker": "0167.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 304568.46,
+      "total_return_pct": 204.5685,
+      "max_drawdown_pct": 41.1905,
+      "symbol": "0205.HK",
+      "ticker": "0205.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 284615.21,
+      "total_return_pct": 184.6152,
+      "max_drawdown_pct": 45.9677,
+      "symbol": "0111.HK",
+      "ticker": "0111.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 235441.0,
+      "total_return_pct": 135.441,
+      "max_drawdown_pct": 48.4482,
+      "symbol": "0179.HK",
+      "ticker": "0179.HK"
+    }
+  ],
+  "bottom_10": [
+    {
+      "start": "2025-03-04",
+      "end": "2026-04-16",
+      "bars": 282,
+      "initial_capital": 100000.0,
+      "final_capital": 7762.31,
+      "total_return_pct": -92.2377,
+      "max_drawdown_pct": 95.0111,
+      "symbol": "CBOE:DJTU",
+      "ticker": "DJTU"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 8141.13,
+      "total_return_pct": -91.8589,
+      "max_drawdown_pct": 96.1187,
+      "symbol": "CBOE:BMNU",
+      "ticker": "BMNU"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 10124.03,
+      "total_return_pct": -89.876,
+      "max_drawdown_pct": 90.4756,
+      "symbol": "0256.HK",
+      "ticker": "0256.HK"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 12420.07,
+      "total_return_pct": -87.5799,
+      "max_drawdown_pct": 93.0764,
+      "symbol": "0204.HK",
+      "ticker": "0204.HK"
+    },
+    {
+      "start": "2025-06-10",
+      "end": "2026-04-16",
+      "bars": 214,
+      "initial_capital": 100000.0,
+      "final_capital": 15730.25,
+      "total_return_pct": -84.2698,
+      "max_drawdown_pct": 91.433,
+      "symbol": "CBOE:ARCX",
+      "ticker": "ARCX"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 16000.0,
+      "total_return_pct": -84.0,
+      "max_drawdown_pct": 90.814,
+      "symbol": "0033.HK",
+      "ticker": "0033.HK"
+    },
+    {
+      "start": "2025-08-11",
+      "end": "2026-04-16",
+      "bars": 172,
+      "initial_capital": 100000.0,
+      "final_capital": 20720.35,
+      "total_return_pct": -79.2797,
+      "max_drawdown_pct": 93.7244,
+      "symbol": "CBOE:CCUP",
+      "ticker": "CCUP"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-15",
+      "bars": 314,
+      "initial_capital": 100000.0,
+      "final_capital": 20785.7,
+      "total_return_pct": -79.2143,
+      "max_drawdown_pct": 82.5476,
+      "symbol": "0078.HK",
+      "ticker": "0078.HK"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 21135.36,
+      "total_return_pct": -78.8646,
+      "max_drawdown_pct": 94.3804,
+      "symbol": "CBOE:CRCD",
+      "ticker": "CRCD"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 21633.4,
+      "total_return_pct": -78.3666,
+      "max_drawdown_pct": 90.4438,
+      "symbol": "CBOE:CORD",
+      "ticker": "CORD"
+    }
+  ],
+  "fail_reason_top": [
+    {
+      "reason": "not_enough_bars",
+      "count": 17
+    }
+  ],
+  "sample_failures": [
+    {
+      "symbol": "CBOE:AAOX",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:AAUA",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:ABUF",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:AMZO",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:ARKI",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "0068.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:ARLI",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "0100.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:BFEW",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:BFXU",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:BUFE",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:CHNL",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:CHNU",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:CRDD",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:CRDX",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:DDFA",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:DDTA",
+      "reason": "not_enough_bars"
+    }
+  ],
+  "meta": {
+    "market": "all",
+    "universe_total": 15239,
+    "start": "2025-01-01",
+    "end": "2026-04-17",
+    "batch_size": 80
+  }
+}

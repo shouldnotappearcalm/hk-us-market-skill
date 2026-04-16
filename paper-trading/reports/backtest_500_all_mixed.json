@@ -1,0 +1,339 @@
+{
+  "summary": {
+    "requested_min_success": 500,
+    "scanned_symbols": 1120,
+    "success_count": 534,
+    "failure_count": 586,
+    "success_rate_on_scanned": 0.4768,
+    "avg_return_pct": 8.2471,
+    "median_return_pct": 9.6066,
+    "avg_max_drawdown_pct": 20.8674,
+    "success_by_market": {
+      "US": 534
+    },
+    "scanned_by_market": {
+      "US": 560,
+      "HK": 560
+    },
+    "generated_at": "2026-04-17 01:02:56"
+  },
+  "top_10": [
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 363166.45,
+      "total_return_pct": 263.1664,
+      "max_drawdown_pct": 39.0241,
+      "symbol": "CBOE:GDMN",
+      "ticker": "GDMN"
+    },
+    {
+      "start": "2025-07-11",
+      "end": "2026-04-16",
+      "bars": 193,
+      "initial_capital": 100000.0,
+      "final_capital": 254020.0,
+      "total_return_pct": 154.02,
+      "max_drawdown_pct": 36.4103,
+      "symbol": "CBOE:GEVX",
+      "ticker": "GEVX"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 238781.71,
+      "total_return_pct": 138.7817,
+      "max_drawdown_pct": 52.4537,
+      "symbol": "CBOE:GOOX",
+      "ticker": "GOOX"
+    },
+    {
+      "start": "2025-11-13",
+      "end": "2026-04-16",
+      "bars": 105,
+      "initial_capital": 100000.0,
+      "final_capital": 233035.5,
+      "total_return_pct": 133.0355,
+      "max_drawdown_pct": 60.8841,
+      "symbol": "CBOE:BEX",
+      "ticker": "BEX"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 215580.87,
+      "total_return_pct": 115.5809,
+      "max_drawdown_pct": 28.0482,
+      "symbol": "CBOE:COPA",
+      "ticker": "COPA"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 188234.91,
+      "total_return_pct": 88.2349,
+      "max_drawdown_pct": 17.219,
+      "symbol": "CBOE:FRDM",
+      "ticker": "FRDM"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 183860.01,
+      "total_return_pct": 83.86,
+      "max_drawdown_pct": 22.6618,
+      "symbol": "CBOE:GDE",
+      "ticker": "GDE"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 179711.25,
+      "total_return_pct": 79.7113,
+      "max_drawdown_pct": 19.1299,
+      "symbol": "CBOE:AAAU",
+      "ticker": "AAAU"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 178640.76,
+      "total_return_pct": 78.6408,
+      "max_drawdown_pct": 19.6534,
+      "symbol": "CBOE:ECH",
+      "ticker": "ECH"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 178081.85,
+      "total_return_pct": 78.0819,
+      "max_drawdown_pct": 19.6147,
+      "symbol": "CBOE:EUAD",
+      "ticker": "EUAD"
+    }
+  ],
+  "bottom_10": [
+    {
+      "start": "2026-01-14",
+      "end": "2026-04-16",
+      "bars": 64,
+      "initial_capital": 100000.0,
+      "final_capital": 7340.36,
+      "total_return_pct": -92.6596,
+      "max_drawdown_pct": 96.9122,
+      "symbol": "CBOE:EOSU",
+      "ticker": "EOSU"
+    },
+    {
+      "start": "2025-03-04",
+      "end": "2026-04-16",
+      "bars": 282,
+      "initial_capital": 100000.0,
+      "final_capital": 7762.31,
+      "total_return_pct": -92.2377,
+      "max_drawdown_pct": 95.0111,
+      "symbol": "CBOE:DJTU",
+      "ticker": "DJTU"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 8155.01,
+      "total_return_pct": -91.845,
+      "max_drawdown_pct": 96.1187,
+      "symbol": "CBOE:BMNU",
+      "ticker": "BMNU"
+    },
+    {
+      "start": "2025-06-10",
+      "end": "2026-04-16",
+      "bars": 214,
+      "initial_capital": 100000.0,
+      "final_capital": 15730.25,
+      "total_return_pct": -84.2698,
+      "max_drawdown_pct": 91.433,
+      "symbol": "CBOE:ARCX",
+      "ticker": "ARCX"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 16204.0,
+      "total_return_pct": -83.796,
+      "max_drawdown_pct": 89.9894,
+      "symbol": "CBOE:ETHU",
+      "ticker": "ETHU"
+    },
+    {
+      "start": "2025-01-02",
+      "end": "2026-04-16",
+      "bars": 322,
+      "initial_capital": 100000.0,
+      "final_capital": 17345.85,
+      "total_return_pct": -82.6542,
+      "max_drawdown_pct": 89.7249,
+      "symbol": "CBOE:ETU",
+      "ticker": "ETU"
+    },
+    {
+      "start": "2025-08-11",
+      "end": "2026-04-16",
+      "bars": 172,
+      "initial_capital": 100000.0,
+      "final_capital": 20809.2,
+      "total_return_pct": -79.1908,
+      "max_drawdown_pct": 93.7244,
+      "symbol": "CBOE:CCUP",
+      "ticker": "CCUP"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 21218.7,
+      "total_return_pct": -78.7813,
+      "max_drawdown_pct": 94.3804,
+      "symbol": "CBOE:CRCD",
+      "ticker": "CRCD"
+    },
+    {
+      "start": "2025-09-26",
+      "end": "2026-04-16",
+      "bars": 139,
+      "initial_capital": 100000.0,
+      "final_capital": 21633.4,
+      "total_return_pct": -78.3666,
+      "max_drawdown_pct": 90.4438,
+      "symbol": "CBOE:CORD",
+      "ticker": "CORD"
+    },
+    {
+      "start": "2026-02-11",
+      "end": "2026-04-16",
+      "bars": 45,
+      "initial_capital": 100000.0,
+      "final_capital": 24782.17,
+      "total_return_pct": -75.2178,
+      "max_drawdown_pct": 81.336,
+      "symbol": "CBOE:BEZ",
+      "ticker": "BEZ"
+    }
+  ],
+  "fail_reason_top": [
+    {
+      "reason": "not_enough_bars",
+      "count": 586
+    }
+  ],
+  "sample_failures": [
+    {
+      "symbol": "00001.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00002.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:AAOX",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00003.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00004.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00005.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00006.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00007.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:AAUA",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00008.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00010.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00012.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00013.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00014.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00016.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00017.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "CBOE:ABUF",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00018.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00019.HK",
+      "reason": "not_enough_bars"
+    },
+    {
+      "symbol": "00020.HK",
+      "reason": "not_enough_bars"
+    }
+  ],
+  "meta": {
+    "market": "all",
+    "universe_total": 15239,
+    "start": "2025-01-01",
+    "end": "2026-04-17",
+    "batch_size": 80
+  }
+}
