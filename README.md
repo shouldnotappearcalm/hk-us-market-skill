@@ -11,6 +11,12 @@
 hk-us-market-skill/
   market-data/      # 港美市场数据技能
   paper-trading/    # 港美模拟仓与回测技能
+  us-strategy-us-momo-swing-fast/     # 美股动量轮动（持仓6）
+  us-strategy-us-momo-swing-slow/     # 美股动量轮动（持仓6）
+  us-strategy-us-momo-swing-balance/  # 美股动量轮动（持仓7）
+  us-strategy-us-momo-swing-broad/    # 美股动量轮动（持仓8）
+  us-strategy-us-momo-swing-wide/     # 美股动量轮动（持仓9）
+  us-strategy-lab/    # 公共运行时 + 搜索/验证脚本
   README.md
 ```
 
@@ -41,6 +47,34 @@ hk-us-market-skill/
     - 运行目录与缓存独立  
     - 交易和数据流程可脚本化验证  
     - 支持 `US/HK` 交替扫描的大样本回测流程
+
+- `us-strategy-us-momo-swing-fast / slow / balance / broad / wide`：美股策略能力  
+  - **主要能力**：  
+    - 自动构建美股候选池并产出次日候选票（`daily_decisions.py`）  
+    - 策略回测与门槛校验（`backtest_validate.py`）  
+    - 统一 JSON 输出，便于对接 `paper-trading` 执行层  
+  - **关键特性**：  
+    - 严格 `T+1` 口径（`t-1` 产出信号，`t` 执行）  
+    - 不读取买点后的未来数据（无未来函数）  
+    - 非主观板块挑票：候选池由自动榜单并集生成  
+
+## US 策略 Skill 快速使用
+
+以下命令在仓库根目录执行。
+
+```bash
+python3 us-strategy-us-momo-swing-fast/scripts/backtest_validate.py --asof 2026-05-10 --json
+python3 us-strategy-us-momo-swing-slow/scripts/backtest_validate.py --asof 2026-05-10 --json
+python3 us-strategy-us-momo-swing-balance/scripts/backtest_validate.py --asof 2026-05-10 --json
+python3 us-strategy-us-momo-swing-broad/scripts/backtest_validate.py --asof 2026-05-10 --json
+python3 us-strategy-us-momo-swing-wide/scripts/backtest_validate.py --asof 2026-05-10 --json
+```
+
+获取次日候选票（示例）：
+
+```bash
+python3 us-strategy-us-momo-swing-fast/scripts/daily_decisions.py --asof 2026-05-10 --json
+```
 
 ## 快速开始
 
