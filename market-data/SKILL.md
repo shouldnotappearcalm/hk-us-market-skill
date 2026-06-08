@@ -39,16 +39,17 @@ pip3 install yfinance pandas numpy requests pandas_datareader yahooquery pytest
 
 ## 渠道优先级
 
-### US
+### US / HK（行情与K线）
 
-- 历史/实时/技术：`yfinance -> yahooquery_history -> yahoo_chart`
-- 基本面：`yfinance -> yahooquery`
+- 实时：`tencent_quote -> sina_quote -> yahooquery_realtime -> yfinance -> yahoo_chart`
+- 历史/技术：`tencent_history -> sina_history -> yfinance -> yahooquery_history -> yahoo_chart`
+
+腾讯、新浪均区分港/美代码。实时用 `usAAPL` / `hk00700`；K 线用 `fqkline/get`，美股需带交易所后缀（如 `usAAPL.OQ`、`usJPM.N`、`usSPY.AM`，由 qt 行情自动解析）。分钟 K 港股走 `minute/query`；美股盘中仅返回当前分钟快照，历史分钟由 Yahoo 兜底。实时结果含 `market_state` 与 `premarket`；盘中若主源未带盘前，会用 Yahoo 补齐。
+
+### 其他
+
+- 基本面（US）：`yfinance -> yahooquery`
 - 宏观：`fred_reader -> fred_csv`
-
-### HK
-
-- 历史/技术：`yfinance -> yahoo_chart`
-- 实时：`yfinance -> yahoo_chart -> tencent_quote`
 
 ## 快速命令
 

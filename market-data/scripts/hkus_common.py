@@ -16,6 +16,17 @@ DEFAULT_US_EXCHANGE = {
     "QQQ": "NASDAQ",
 }
 
+US_TENCENT_KLINE_SUFFIX = {
+    "NASDAQ": ".OQ",
+    "NYSE": ".N",
+    "AMEX": ".A",
+}
+
+
+def _us_tencent_kline_code(ticker: str, exchange: str) -> str:
+    suffix = US_TENCENT_KLINE_SUFFIX.get(exchange.upper(), ".OQ")
+    return f"us{ticker}{suffix}"
+
 
 def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
     symbol = (raw_symbol or "").strip().upper()
@@ -28,11 +39,15 @@ def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
             raise ValueError(f"无法识别港股代码: {raw_symbol}")
         digits = digits.zfill(4)
         hk = f"{digits}.HK"
+        tencent_code = f"hk{digits.zfill(5)}"
         return {
             "market": "HK",
             "normalized": hk,
             "yahoo_symbol": hk,
             "display_symbol": hk,
+            "tencent_code": tencent_code,
+            "tencent_kline_code": tencent_code,
+            "sina_code": tencent_code,
         }
 
     if ":" in symbol:
@@ -47,6 +62,10 @@ def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
             "normalized": normalized,
             "yahoo_symbol": ticker,
             "display_symbol": normalized,
+            "exchange": exchange,
+            "tencent_code": f"us{ticker}",
+            "tencent_kline_code": _us_tencent_kline_code(ticker, exchange),
+            "sina_code": f"gb_{ticker.lower()}",
         }
 
     ticker = re.sub(r"[^A-Z]", "", symbol)
@@ -59,22 +78,28 @@ def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
         "normalized": normalized,
         "yahoo_symbol": ticker,
         "display_symbol": normalized,
+        "exchange": exchange,
+        "tencent_code": f"us{ticker}",
+        "tencent_kline_code": _us_tencent_kline_code(ticker, exchange),
+        "sina_code": f"gb_{ticker.lower()}",
     }
+
+
+_YAHOO_HISTORY_CHAIN = ["yfinance", "yahooquery_history", "yahoo_chart"]
+_YAHOO_REALTIME_CHAIN = ["yahooquery_realtime", "yfinance", "yahoo_chart"]
 
 
 def build_fallback_chain(market: str, capability: str) -> List[str]:
     m = market.upper()
     c = capability.lower()
-    if m == "US" and c in {"history", "realtime", "technical"}:
-        return ["yfinance", "yahooquery_history", "yahoo_chart"]
+    if m in {"US", "HK"} and c in {"history", "realtime", "technical"}:
+        if c in {"history", "technical"}:
+            return ["tencent_history", "sina_history", *_YAHOO_HISTORY_CHAIN]
+        return ["tencent_quote", "sina_quote", *_YAHOO_REALTIME_CHAIN]
     if m == "US" and c in {"fundamental", "sector"}:
         return ["yfinance", "yahooquery"]
     if m == "US" and c == "macro":
         return ["fred_reader", "fred_csv"]
-    if m == "HK" and c in {"history", "technical"}:
-        return ["yfinance", "yahoo_chart"]
-    if m == "HK" and c == "realtime":
-        return ["yfinance", "yahoo_chart", "tencent_quote"]
     return ["yfinance"]
 
 

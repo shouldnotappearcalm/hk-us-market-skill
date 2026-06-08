@@ -9,6 +9,8 @@ import pandas as pd
 try:
     from scripts.hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
     from scripts.hkus_data_sources import (
+        fetch_sina_history,
+        fetch_tencent_history,
         fetch_yahooquery_history,
         fetch_yahoo_chart_history,
         fetch_yfinance_history,
@@ -16,6 +18,8 @@ try:
 except Exception:
     from hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
     from hkus_data_sources import (
+        fetch_sina_history,
+        fetch_tencent_history,
         fetch_yahooquery_history,
         fetch_yahoo_chart_history,
         fetch_yfinance_history,
@@ -43,6 +47,8 @@ def fetch_symbol_history(symbol: str, interval: str, days: int, start: str, end:
     chain = build_fallback_chain(symbol_info["market"], "history")
     yahoo_symbol = symbol_info["yahoo_symbol"]
     data_map = {
+        "tencent_history": fetch_tencent_history(symbol_info, interval, days),
+        "sina_history": fetch_sina_history(symbol_info, interval, days),
         "yfinance": fetch_yfinance_history(yahoo_symbol, interval, days),
         "yahooquery_history": fetch_yahooquery_history(yahoo_symbol, interval, days),
         "yahoo_chart": fetch_yahoo_chart_history(yahoo_symbol, interval, days),
@@ -86,7 +92,11 @@ def main():
     parser = argparse.ArgumentParser(description="HK+US 历史K线（多渠道兜底）")
     parser.add_argument("--symbol", help="单个标的，如 AAPL 或 0700.HK")
     parser.add_argument("--batch", help="批量标的，逗号分隔")
-    parser.add_argument("--interval", default="1d", choices=["1d", "1wk", "1mo"])
+    parser.add_argument(
+        "--interval",
+        default="1d",
+        choices=["1d", "1wk", "1mo", "1m", "5m", "15m", "30m", "60m"],
+    )
     parser.add_argument("--days", type=int, default=180)
     parser.add_argument("--start", help="开始日期 YYYY-MM-DD")
     parser.add_argument("--end", help="结束日期 YYYY-MM-DD")

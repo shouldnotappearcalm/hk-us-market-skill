@@ -6,15 +6,29 @@ import pandas as pd
 
 try:
     from scripts.hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
-    from scripts.hkus_data_sources import fetch_yahooquery_history, fetch_yahoo_chart_history, fetch_yfinance_history
+    from scripts.hkus_data_sources import (
+        fetch_sina_history,
+        fetch_tencent_history,
+        fetch_yahooquery_history,
+        fetch_yahoo_chart_history,
+        fetch_yfinance_history,
+    )
 except Exception:
     from hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
-    from hkus_data_sources import fetch_yahooquery_history, fetch_yahoo_chart_history, fetch_yfinance_history
+    from hkus_data_sources import (
+        fetch_sina_history,
+        fetch_tencent_history,
+        fetch_yahooquery_history,
+        fetch_yahoo_chart_history,
+        fetch_yfinance_history,
+    )
 
 
 def _get_history(symbol_info, days: int, interval: str):
     chain = build_fallback_chain(symbol_info["market"], "technical")
     data_map = {
+        "tencent_history": fetch_tencent_history(symbol_info, interval, days),
+        "sina_history": fetch_sina_history(symbol_info, interval, days),
         "yfinance": fetch_yfinance_history(symbol_info["yahoo_symbol"], interval, days),
         "yahooquery_history": fetch_yahooquery_history(symbol_info["yahoo_symbol"], interval, days),
         "yahoo_chart": fetch_yahoo_chart_history(symbol_info["yahoo_symbol"], interval, days),

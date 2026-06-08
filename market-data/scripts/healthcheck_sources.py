@@ -4,22 +4,30 @@ import json
 from datetime import datetime
 
 try:
+    from scripts.hkus_common import normalize_symbol
     from scripts.hkus_data_sources import (
         fetch_fred_series,
+        fetch_sina_history,
+        fetch_sina_quote,
+        fetch_tencent_history,
         fetch_tencent_quote,
         fetch_yahoo_chart_history,
-        fetch_yahooquery_history,
         fetch_yahooquery_fundamental,
+        fetch_yahooquery_realtime,
         fetch_yfinance_fundamental,
         fetch_yfinance_history,
     )
 except Exception:
+    from hkus_common import normalize_symbol
     from hkus_data_sources import (
         fetch_fred_series,
+        fetch_sina_history,
+        fetch_sina_quote,
+        fetch_tencent_history,
         fetch_tencent_quote,
         fetch_yahoo_chart_history,
-        fetch_yahooquery_history,
         fetch_yahooquery_fundamental,
+        fetch_yahooquery_realtime,
         fetch_yfinance_fundamental,
         fetch_yfinance_history,
     )
@@ -30,30 +38,43 @@ def _status(data):
 
 
 def run(us_symbol: str, hk_symbol: str):
+    us_info = normalize_symbol(us_symbol)
+    hk_info = normalize_symbol(hk_symbol)
     result = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "us_symbol": us_symbol,
-        "hk_symbol": hk_symbol,
+        "us_symbol": us_info["normalized"],
+        "hk_symbol": hk_info["normalized"],
         "matrix": {},
     }
     result["matrix"]["history"] = {
         "us": {
-            "yfinance": _status(fetch_yfinance_history(us_symbol, "1d", 90)),
-            "yahooquery_history": _status(fetch_yahooquery_history(us_symbol, "1d", 90)),
-            "yahoo_chart": _status(fetch_yahoo_chart_history(us_symbol, "1d", 90)),
+            "tencent_history": _status(fetch_tencent_history(us_info, "1d", 90)),
+            "sina_history": _status(fetch_sina_history(us_info, "1d", 90)),
+            "yfinance": _status(fetch_yfinance_history(us_info["yahoo_symbol"], "1d", 90)),
+            "yahoo_chart": _status(fetch_yahoo_chart_history(us_info["yahoo_symbol"], "1d", 90)),
         },
         "hk": {
-            "yfinance": _status(fetch_yfinance_history(hk_symbol, "1d", 90)),
-            "yahoo_chart": _status(fetch_yahoo_chart_history(hk_symbol, "1d", 90)),
+            "tencent_history": _status(fetch_tencent_history(hk_info, "1d", 90)),
+            "sina_history": _status(fetch_sina_history(hk_info, "1d", 90)),
+            "yfinance": _status(fetch_yfinance_history(hk_info["yahoo_symbol"], "1d", 90)),
+            "yahoo_chart": _status(fetch_yahoo_chart_history(hk_info["yahoo_symbol"], "1d", 90)),
         },
     }
     result["matrix"]["realtime"] = {
-        "hk": {"tencent_quote": _status(fetch_tencent_quote(hk_symbol))},
+        "us": {
+            "tencent_quote": _status(fetch_tencent_quote(us_info)),
+            "sina_quote": _status(fetch_sina_quote(us_info)),
+            "yahooquery_realtime": _status(fetch_yahooquery_realtime(us_info["yahoo_symbol"])),
+        },
+        "hk": {
+            "tencent_quote": _status(fetch_tencent_quote(hk_info)),
+            "sina_quote": _status(fetch_sina_quote(hk_info)),
+        },
     }
     result["matrix"]["fundamental"] = {
         "us": {
-            "yfinance": _status(fetch_yfinance_fundamental(us_symbol)),
-            "yahooquery": _status(fetch_yahooquery_fundamental(us_symbol)),
+            "yfinance": _status(fetch_yfinance_fundamental(us_info["yahoo_symbol"])),
+            "yahooquery": _status(fetch_yahooquery_fundamental(us_info["yahoo_symbol"])),
         }
     }
     fred = fetch_fred_series("DGS10", 365)

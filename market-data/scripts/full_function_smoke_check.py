@@ -70,12 +70,12 @@ def main():
         (
             "forced_realtime_us_failover",
             f"python3 scripts/fetch_realtime_hkus.py --symbol {args.us_symbol} --json",
-            {"HKUS_DISABLE_SOURCES": "yfinance"},
+            {"HKUS_DISABLE_SOURCES": "tencent_quote"},
         ),
         (
             "forced_history_us_failover",
             f"python3 scripts/fetch_history_hkus.py --symbol {args.us_symbol} --interval 1d --days 120 --count 60 --json",
-            {"HKUS_DISABLE_SOURCES": "yfinance"},
+            {"HKUS_DISABLE_SOURCES": "tencent_history"},
         ),
         (
             "forced_macro_failover",

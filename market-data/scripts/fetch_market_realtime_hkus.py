@@ -10,13 +10,26 @@ import requests
 
 try:
     from scripts.fetch_universe_hkus import fetch_hk_universe, fetch_us_universe
-    from scripts.hkus_data_sources import fetch_yahooquery_history, fetch_yfinance_realtime
+    from scripts.hkus_common import normalize_symbol
+    from scripts.hkus_data_sources import (
+        _parse_sina_quote_line,
+        _parse_tencent_quote_line,
+        fetch_yahooquery_history,
+        fetch_yfinance_realtime,
+    )
 except Exception:
     from fetch_universe_hkus import fetch_hk_universe, fetch_us_universe
-    from hkus_data_sources import fetch_yahooquery_history, fetch_yfinance_realtime
+    from hkus_common import normalize_symbol
+    from hkus_data_sources import (
+        _parse_sina_quote_line,
+        _parse_tencent_quote_line,
+        fetch_yahooquery_history,
+        fetch_yfinance_realtime,
+    )
 
 
 TENCENT_BATCH_URL = "https://qt.gtimg.cn/q="
+SINA_BATCH_URL = "https://hq.sinajs.cn/list="
 
 
 def _session() -> requests.Session:
@@ -31,89 +44,78 @@ def _chunk(items: List[str], size: int):
         yield items[i : i + size]
 
 
-def _parse_tencent_hk_line(line: str):
-    if "~" not in line:
-        return None
-    try:
-        body = line.split('"', 1)[1].rsplit('"', 1)[0]
-        arr = body.split("~")
-        if len(arr) < 6:
-            return None
-        code = arr[2]
-        price = float(arr[3]) if arr[3] else 0.0
-        prev_close = float(arr[4]) if arr[4] else 0.0
-        open_v = float(arr[5]) if arr[5] else None
-        if price <= 0 or prev_close <= 0:
-            return None
-        change = price - prev_close
-        change_pct = change / prev_close * 100
-        return {
-            "symbol": f"{code}.HK",
-            "name": arr[1],
-            "price": round(price, 4),
-            "previous_close": round(prev_close, 4),
-            "open": open_v,
-            "change": round(change, 4),
-            "change_pct": round(change_pct, 4),
-            "volume": None,
-            "market": "HK",
-            "source_actual": "tencent_quote",
-        }
-    except Exception:
-        return None
+def _quote_row_from_payload(symbol: str, market: str, payload: Dict, source_actual: str) -> Dict:
+    return {
+        "symbol": symbol,
+        "name": payload.get("name") or symbol,
+        "price": payload.get("price"),
+        "previous_close": payload.get("previous_close"),
+        "open": payload.get("open"),
+        "change": payload.get("change"),
+        "change_pct": payload.get("change_pct"),
+        "volume": payload.get("volume"),
+        "market_state": payload.get("market_state"),
+        "premarket": payload.get("premarket"),
+        "market": market,
+        "source_actual": source_actual,
+    }
 
 
-def _fetch_hk_quotes_tencent(hk_symbols: List[str]) -> Dict[str, Dict]:
+def _fetch_quotes_tencent(symbols: List[str], market: str) -> Dict[str, Dict]:
     s = _session()
     out = {}
-    for batch in _chunk(hk_symbols, 200):
-        tk_codes = []
-        for sym in batch:
-            digits = "".join(ch for ch in sym if ch.isdigit())
-            tk_codes.append(f"hk{digits.zfill(5)}")
-        url = TENCENT_BATCH_URL + ",".join(tk_codes)
+    code_map = {}
+    for sym in symbols:
+        info = normalize_symbol(sym)
+        code_map[info["tencent_code"]] = info["normalized"]
+    for batch in _chunk(list(code_map.keys()), 200):
+        url = TENCENT_BATCH_URL + ",".join(batch)
         resp = s.get(url, timeout=20)
         for line in resp.text.splitlines():
-            item = _parse_tencent_hk_line(line)
-            if item:
-                out[item["symbol"]] = item
+            if "~" not in line:
+                continue
+            try:
+                prefix = line.split("=", 1)[0]
+                code = prefix.replace("v_", "")
+                normalized = code_map.get(code)
+                if not normalized:
+                    continue
+                payload = _parse_tencent_quote_line(line, market)
+                if payload:
+                    out[normalized] = _quote_row_from_payload(
+                        normalized, market, payload, "tencent_quote"
+                    )
+            except Exception:
+                continue
     return out
 
 
-def _fetch_us_quotes_yahooquery(us_symbols: List[str]) -> Dict[str, Dict]:
-    try:
-        from yahooquery import Ticker
-    except Exception:
-        return {}
-
+def _fetch_quotes_sina(symbols: List[str], market: str) -> Dict[str, Dict]:
+    s = _session()
     out = {}
-    tickers = [x.split(":")[1] for x in us_symbols]
-    for batch in _chunk(tickers, 300):
-        tq = Ticker(batch, asynchronous=True)
-        prices = tq.price
-        if not isinstance(prices, dict):
-            continue
-        for ticker in batch:
-            p = prices.get(ticker)
-            if not isinstance(p, dict):
+    code_map = {}
+    for sym in symbols:
+        info = normalize_symbol(sym)
+        code_map[info["sina_code"]] = info["normalized"]
+    for batch in _chunk(list(code_map.keys()), 200):
+        url = SINA_BATCH_URL + ",".join(batch)
+        resp = s.get(url, timeout=20)
+        for line in resp.text.splitlines():
+            if '="' not in line:
                 continue
-            price = p.get("regularMarketPrice")
-            prev_close = p.get("regularMarketPreviousClose")
-            if price is None or prev_close in (None, 0):
+            try:
+                prefix = line.split("=", 1)[0]
+                code = prefix.replace("var hq_str_", "")
+                normalized = code_map.get(code)
+                if not normalized:
+                    continue
+                payload = _parse_sina_quote_line(line, market)
+                if payload:
+                    out[normalized] = _quote_row_from_payload(
+                        normalized, market, payload, "sina_quote"
+                    )
+            except Exception:
                 continue
-            change = float(price) - float(prev_close)
-            out[f"{p.get('fullExchangeName', 'NASDAQ').upper()}:{ticker}"] = {
-                "symbol": f"{p.get('fullExchangeName', 'NASDAQ').upper()}:{ticker}",
-                "name": p.get("shortName") or p.get("longName") or ticker,
-                "price": float(price),
-                "previous_close": float(prev_close),
-                "open": p.get("regularMarketOpen"),
-                "change": round(change, 4),
-                "change_pct": round(change / float(prev_close) * 100, 4),
-                "volume": p.get("regularMarketVolume"),
-                "market": "US",
-                "source_actual": "yahooquery_price",
-            }
     return out
 
 
@@ -205,8 +207,16 @@ def run(market: str, symbols: str, universe_limit: int, workers: int, top: int, 
     quotes = []
     failed = []
 
-    us_map = _fetch_us_quotes_yahooquery(us_symbols) if us_symbols else {}
-    hk_map = _fetch_hk_quotes_tencent(hk_symbols) if hk_symbols else {}
+    us_map = _fetch_quotes_tencent(us_symbols, "US") if us_symbols else {}
+    hk_map = _fetch_quotes_tencent(hk_symbols, "HK") if hk_symbols else {}
+
+    missing_us = [sym for sym in us_symbols if sym not in us_map]
+    if missing_us:
+        us_map.update(_fetch_quotes_sina(missing_us, "US"))
+
+    missing_hk = [sym for sym in hk_symbols if sym not in hk_map]
+    if missing_hk:
+        hk_map.update(_fetch_quotes_sina(missing_hk, "HK"))
 
     # 容错：exchange 名可能和标准化 symbol 不完全一致，这里按 ticker 再映射一次
     us_by_ticker = {k.split(":")[1]: v for k, v in us_map.items() if ":" in k}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 from io import StringIO
 from typing import Dict, List, Optional
@@ -39,6 +40,118 @@ FRED_SERIES = {
     "UNRATE": "Unemployment Rate",
     "GDPC1": "Real GDP",
 }
+
+TENCENT_QUOTE_URL = "https://qt.gtimg.cn/q="
+TENCENT_DAY_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+TENCENT_MINUTE_URL = "https://web.ifzq.gtimg.cn/appstock/app/minute/query"
+SINA_QUOTE_URL = "https://hq.sinajs.cn/list="
+SINA_KLINE_URL = "https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData"
+SINA_HK_MINLINE_URL = "https://quotes.sina.cn/hk/api/openapi.php/HK_MinlineService.getMinline"
+
+TENCENT_INTERVAL_MAP = {"1d": "day", "1wk": "week", "1mo": "month"}
+TENCENT_MINUTE_INTERVALS = {"1m", "5m", "15m", "30m", "60m"}
+SINA_SCALE_MAP = {"1d": 240, "1wk": 1200, "1mo": 7200}
+
+_TENCENT_US_STATUS = {
+    "100": "PRE",
+    "101": "PRE",
+    "102": "PRE",
+    "200": "REGULAR",
+    "300": "POST",
+    "400": "CLOSED",
+}
+
+
+def _http_session() -> requests.Session:
+    session = requests.Session()
+    session.trust_env = False
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "*/*",
+            "Referer": "https://finance.sina.com.cn/",
+        }
+    )
+    return session
+
+
+def _safe_float(value) -> Optional[float]:
+    if value in (None, "", "-"):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _market_state_from_sina_us_time(quote_time: Optional[str]) -> str:
+    if not quote_time or " " not in quote_time:
+        return "UNKNOWN"
+    try:
+        clock = quote_time.split(" ")[1]
+        hour, minute = [int(x) for x in clock.split(":")[:2]]
+        mins = hour * 60 + minute
+        if 16 * 60 <= mins < 21 * 60 + 30:
+            return "PRE"
+        if mins >= 21 * 60 + 30 or mins < 4 * 60:
+            return "REGULAR"
+        if 4 * 60 <= mins < 8 * 60:
+            return "POST"
+        return "CLOSED"
+    except Exception:
+        return "UNKNOWN"
+
+
+def _market_state_from_tencent(status_code: str, market: str) -> str:
+    code = str(status_code or "").strip()
+    if market == "US":
+        return _TENCENT_US_STATUS.get(code, "UNKNOWN")
+    if code in {"100", "400"}:
+        return "CLOSED"
+    if code == "200":
+        return "REGULAR"
+    if code in {"101", "102"}:
+        return "PRE"
+    if code == "300":
+        return "POST"
+    return "UNKNOWN"
+
+
+def _build_realtime_payload(
+    *,
+    price: float,
+    prev_close: float,
+    open_v: Optional[float],
+    high: Optional[float],
+    low: Optional[float],
+    volume: Optional[int],
+    market_state: str = "UNKNOWN",
+    premarket: Optional[Dict] = None,
+    name: Optional[str] = None,
+    currency: Optional[str] = None,
+    quote_time: Optional[str] = None,
+) -> Dict:
+    change = price - prev_close
+    change_pct = (change / prev_close * 100) if prev_close else 0.0
+    payload = {
+        "price": round(price, 4),
+        "open": open_v,
+        "high": high,
+        "low": low,
+        "previous_close": round(prev_close, 4),
+        "change": round(change, 4),
+        "change_pct": round(change_pct, 4),
+        "volume": volume,
+        "market_state": market_state,
+        "premarket": premarket,
+    }
+    if name:
+        payload["name"] = name
+    if currency:
+        payload["currency"] = currency
+    if quote_time:
+        payload["quote_time"] = quote_time
+    return payload
 
 
 def _ensure_yfinance():
@@ -218,38 +331,546 @@ def fetch_yahoo_chart_realtime(yahoo_symbol: str) -> Optional[Dict]:
     return _extract_realtime_from_records(intraday or [])
 
 
-def fetch_tencent_quote(hk_symbol: str) -> Optional[Dict]:
-    digits = hk_symbol.replace(".HK", "")
-    code = digits.zfill(5)
-    url = f"https://qt.gtimg.cn/q=hk{code}"
+def _parse_tencent_quote_line(line: str, market: str) -> Optional[Dict]:
+    if "~" not in line:
+        return None
     try:
-        resp = requests.get(url, timeout=10)
-        text = resp.text
-        if "~" not in text:
-            return None
-        body = text.split('"', 1)[1].rsplit('"', 1)[0]
+        body = line.split('"', 1)[1].rsplit('"', 1)[0]
         arr = body.split("~")
-        if len(arr) < 10:
+        if len(arr) < 35:
             return None
-        price = float(arr[3])
-        open_v = float(arr[5])
-        high = float(arr[4])
-        low = float(arr[6])
-        prev_close = float(arr[4]) if float(arr[4]) else open_v
-        change = price - prev_close
-        change_pct = (change / prev_close * 100) if prev_close else 0.0
-        return {
-            "price": round(price, 4),
-            "open": open_v,
-            "high": high,
-            "low": low,
-            "previous_close": prev_close,
-            "change": round(change, 4),
-            "change_pct": round(change_pct, 4),
-            "volume": None,
-        }
+        status_code = arr[0]
+        name = arr[1] or None
+        market_state = _market_state_from_tencent(status_code, market)
+        if market == "HK":
+            prev_close = _safe_float(arr[3])
+            open_v = _safe_float(arr[4])
+            price = _safe_float(arr[5])
+            volume_raw = _safe_float(arr[6])
+            high = _safe_float(arr[33])
+            low = _safe_float(arr[34])
+            currency = "HKD"
+        else:
+            price = _safe_float(arr[3])
+            prev_close = _safe_float(arr[4])
+            open_v = _safe_float(arr[5])
+            volume_raw = _safe_float(arr[6])
+            high = _safe_float(arr[33])
+            low = _safe_float(arr[34])
+            currency = arr[35] if len(arr) > 35 and arr[35] else "USD"
+        if price is None or prev_close is None or price <= 0 or prev_close <= 0:
+            return None
+        volume = int(volume_raw) if volume_raw is not None else None
+        quote_time = arr[30] if len(arr) > 30 and arr[30] else None
+        premarket = None
+        if market == "US" and market_state == "PRE":
+            premarket = {
+                "price": round(price, 4),
+                "change": round(price - prev_close, 4),
+                "change_pct": round((price - prev_close) / prev_close * 100, 4) if prev_close else 0.0,
+                "time": quote_time,
+            }
+        return _build_realtime_payload(
+            price=price,
+            prev_close=prev_close,
+            open_v=open_v,
+            high=high,
+            low=low,
+            volume=volume,
+            market_state=market_state,
+            premarket=premarket,
+            name=name,
+            currency=currency,
+            quote_time=quote_time,
+        )
     except Exception:
         return None
+
+
+def fetch_tencent_quote(symbol_info: Dict) -> Optional[Dict]:
+    market = symbol_info["market"]
+    code = symbol_info.get("tencent_code")
+    if not code:
+        if market == "HK":
+            digits = re.sub(r"[^0-9]", "", symbol_info["yahoo_symbol"])
+            code = f"hk{digits.zfill(5)}"
+        else:
+            code = f"us{symbol_info['yahoo_symbol']}"
+    try:
+        resp = _http_session().get(f"{TENCENT_QUOTE_URL}{code}", timeout=10)
+        return _parse_tencent_quote_line(resp.text, market)
+    except Exception:
+        return None
+
+
+def _hk_sina_quote_codes(symbol_info: Dict) -> List[str]:
+    code = symbol_info.get("sina_code") or ""
+    codes = []
+    if code.startswith("hk"):
+        codes.append(f"rt_{code}")
+    if code:
+        codes.append(code)
+    return codes
+
+
+def _parse_sina_quote_line(line: str, market: str) -> Optional[Dict]:
+    if '="' not in line:
+        return None
+    try:
+        body = line.split('="', 1)[1].rsplit('"', 1)[0]
+        arr = body.split(",")
+        if market == "HK":
+            if len(arr) < 13:
+                return None
+            name = arr[1] or arr[0]
+            price = _safe_float(arr[2])
+            open_v = _safe_float(arr[3])
+            high = _safe_float(arr[4])
+            low = _safe_float(arr[5])
+            prev_close = _safe_float(arr[6])
+            volume_raw = _safe_float(arr[12])
+            quote_time = f"{arr[17]} {arr[18]}" if len(arr) > 18 else None
+            currency = "HKD"
+            market_state = "REGULAR"
+        else:
+            if len(arr) < 11:
+                return None
+            name = arr[0]
+            price = _safe_float(arr[1])
+            prev_close = _safe_float(arr[5])
+            open_v = _safe_float(arr[6])
+            low = _safe_float(arr[7])
+            high = _safe_float(arr[8])
+            volume_raw = _safe_float(arr[10])
+            quote_time = arr[3] if len(arr) > 3 else None
+            currency = "USD"
+            market_state = _market_state_from_sina_us_time(quote_time)
+        if price is None or prev_close is None or price <= 0 or prev_close <= 0:
+            return None
+        volume = int(volume_raw) if volume_raw is not None else None
+        change = _safe_float(arr[7]) if len(arr) > 7 else None
+        change_pct = _safe_float(arr[8]) if len(arr) > 8 else None
+        if market == "HK" and change is not None and change_pct is not None:
+            payload_change = round(change, 4)
+            payload_change_pct = round(change_pct, 4)
+        else:
+            payload_change = round(price - prev_close, 4)
+            payload_change_pct = round((price - prev_close) / prev_close * 100, 4) if prev_close else 0.0
+        premarket = None
+        if market == "US" and market_state == "PRE":
+            premarket = {
+                "price": round(price, 4),
+                "change": round(price - prev_close, 4),
+                "change_pct": round((price - prev_close) / prev_close * 100, 4) if prev_close else 0.0,
+                "time": quote_time,
+            }
+        payload = _build_realtime_payload(
+            price=price,
+            prev_close=prev_close,
+            open_v=open_v,
+            high=high,
+            low=low,
+            volume=volume,
+            market_state=market_state,
+            premarket=premarket,
+            name=name,
+            currency=currency,
+            quote_time=quote_time,
+        )
+        payload["change"] = payload_change
+        payload["change_pct"] = payload_change_pct
+        return payload
+    except Exception:
+        return None
+
+
+def fetch_sina_quote(symbol_info: Dict) -> Optional[Dict]:
+    market = symbol_info.get("market")
+    codes = _hk_sina_quote_codes(symbol_info) if market == "HK" else [symbol_info.get("sina_code")]
+    for code in codes:
+        if not code:
+            continue
+        try:
+            resp = _http_session().get(f"{SINA_QUOTE_URL}{code}", timeout=10)
+            parsed = _parse_sina_quote_line(resp.text, market)
+            if parsed:
+                return parsed
+        except Exception:
+            continue
+    return None
+
+
+def _resolve_tencent_kline_code(symbol_info: Dict) -> Optional[str]:
+    market = symbol_info.get("market")
+    if market == "HK":
+        return symbol_info.get("tencent_code")
+    preset = symbol_info.get("tencent_kline_code")
+    quote_code = symbol_info.get("tencent_code") or f"us{symbol_info.get('yahoo_symbol', '')}"
+    try:
+        resp = _http_session().get(f"{TENCENT_QUOTE_URL}{quote_code}", timeout=10)
+        line = resp.text
+        if "~" not in line:
+            return preset
+        body = line.split('"', 1)[1].rsplit('"', 1)[0]
+        arr = body.split("~")
+        quote_sym = arr[2] if len(arr) > 2 and arr[2] else None
+        if quote_sym:
+            return f"us{quote_sym}"
+    except Exception:
+        pass
+    return preset
+
+
+def _extract_tencent_kline_rows(node: Dict, unit: str) -> List:
+    if not isinstance(node, dict):
+        return []
+    rows = node.get(unit) or node.get(f"qfq{unit}") or []
+    return rows if isinstance(rows, list) else []
+
+
+def _records_from_tencent_kline(rows: List) -> List[Dict]:
+    out = []
+    for row in rows or []:
+        if not isinstance(row, (list, tuple)) or len(row) < 6:
+            continue
+        day, open_v, close_v, high_v, low_v, vol = row[:6]
+        if close_v in (None, ""):
+            continue
+        out.append(
+            {
+                "time": f"{day} 00:00:00" if len(str(day)) <= 10 else str(day),
+                "open": _safe_float(open_v),
+                "high": _safe_float(high_v),
+                "low": _safe_float(low_v),
+                "close": _safe_float(close_v),
+                "volume": int(_safe_float(vol) or 0),
+            }
+        )
+    return out
+
+
+def _fetch_tencent_fqkline(code: str, unit: str, days: int) -> Optional[List[Dict]]:
+    count = max(30, min(1023, days + 10))
+    start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    param_candidates = [
+        f"{code},{unit},,,{count},qfq",
+        f"{code},{unit},{start_date},,{count},qfq",
+        f"{code},{unit},{start_date},{datetime.now().strftime('%Y-%m-%d')},{count},qfq",
+    ]
+    min_bars = 10 if unit == "day" else 4
+    best: List[Dict] = []
+    for param in param_candidates:
+        try:
+            resp = _http_session().get(f"{TENCENT_DAY_URL}?param={param}", timeout=15)
+            payload = resp.json()
+            node = (payload or {}).get("data", {}).get(code, {})
+            rows = _extract_tencent_kline_rows(node, unit)
+            records = _records_from_tencent_kline(rows)
+            if len(records) > len(best):
+                best = records
+            if len(records) >= min_bars:
+                return records
+        except Exception:
+            continue
+    return best or None
+
+
+def _records_from_tencent_minute(lines: List[str], trade_date: str) -> List[Dict]:
+    out = []
+    prev_cum_vol = 0
+    for line in lines or []:
+        parts = str(line).split()
+        if len(parts) < 3:
+            continue
+        clock, price_raw, vol_raw = parts[0], parts[1], parts[2]
+        if not clock.isdigit() or len(clock) < 3:
+            continue
+        price = _safe_float(price_raw)
+        cum_vol = int(_safe_float(vol_raw) or 0)
+        if price is None:
+            continue
+        minute_vol = max(cum_vol - prev_cum_vol, 0) if prev_cum_vol else cum_vol
+        prev_cum_vol = cum_vol
+        hh = clock.zfill(4)[:2]
+        mm = clock.zfill(4)[2:4]
+        day = trade_date
+        if len(trade_date) == 8 and trade_date.isdigit():
+            day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:8]}"
+        out.append(
+            {
+                "time": f"{day} {hh}:{mm}:00",
+                "open": price,
+                "high": price,
+                "low": price,
+                "close": price,
+                "volume": minute_vol,
+            }
+        )
+    return out
+
+
+def fetch_tencent_minute(symbol_info: Dict) -> Optional[List[Dict]]:
+    code = symbol_info.get("tencent_code")
+    if not code:
+        return None
+    try:
+        resp = _http_session().get(f"{TENCENT_MINUTE_URL}?code={code}", timeout=15)
+        payload = resp.json()
+        node = (payload or {}).get("data", {}).get(code, {})
+        minute_node = node.get("data") if isinstance(node, dict) else {}
+        lines = minute_node.get("data") if isinstance(minute_node, dict) else []
+        trade_date = str(minute_node.get("date") or datetime.now().strftime("%Y%m%d"))
+        records = _records_from_tencent_minute(lines, trade_date)
+        if records:
+            return records
+        if symbol_info.get("market") == "US" and len(lines) == 1:
+            records = _records_from_tencent_minute(lines, datetime.now().strftime("%Y%m%d"))
+            return records or None
+        return None
+    except Exception:
+        return None
+
+
+def fetch_tencent_history(symbol_info: Dict, interval: str, days: int) -> Optional[List[Dict]]:
+    if interval in TENCENT_MINUTE_INTERVALS:
+        return fetch_tencent_minute(symbol_info)
+    unit = TENCENT_INTERVAL_MAP.get(interval)
+    if not unit:
+        return None
+    code = _resolve_tencent_kline_code(symbol_info)
+    if not code:
+        return None
+    records = _fetch_tencent_fqkline(code, unit, days)
+    min_bars = 10 if interval == "1d" else 4
+    if not records or len(records) < min_bars:
+        return None
+    return records
+
+
+def _records_from_sina_kline(items: List[Dict]) -> List[Dict]:
+    out = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        close_v = _safe_float(item.get("close"))
+        if close_v is None:
+            continue
+        day = item.get("day") or item.get("date")
+        out.append(
+            {
+                "time": str(day),
+                "open": _safe_float(item.get("open")),
+                "high": _safe_float(item.get("high")),
+                "low": _safe_float(item.get("low")),
+                "close": close_v,
+                "volume": int(_safe_float(item.get("volume")) or 0),
+            }
+        )
+    return out
+
+
+def _fetch_sina_kline_api(symbol_code: str, interval: str, count: int) -> Optional[List[Dict]]:
+    scale = SINA_SCALE_MAP.get(interval)
+    if scale is None:
+        return None
+    params = {"symbol": symbol_code, "scale": scale, "datalen": min(1023, count), "ma": "no"}
+    try:
+        resp = _http_session().get(SINA_KLINE_URL, params=params, timeout=15)
+        data = resp.json()
+        if not data or isinstance(data, dict):
+            return None
+        return _records_from_sina_kline(data)
+    except Exception:
+        return None
+
+
+def _fetch_sina_hk_minline_groups(symbol_digits: str, days: int) -> List:
+    params = {"symbol": symbol_digits, "day": max(5, min(60, days // 5 + 5))}
+    try:
+        resp = _http_session().get(SINA_HK_MINLINE_URL, params=params, timeout=20)
+        payload = resp.json()
+        return ((payload or {}).get("result") or {}).get("data") or []
+    except Exception:
+        return []
+
+
+def _records_from_sina_hk_minline(groups: List, trade_day: Optional[str] = None) -> List[Dict]:
+    out = []
+    for day_rows in groups or []:
+        if not day_rows:
+            continue
+        first = day_rows[0]
+        day = first.get("date")
+        if trade_day and day != trade_day:
+            continue
+        for row in day_rows:
+            clock = str(row.get("m") or "")
+            price = _safe_float(row.get("price"))
+            minute_vol = int(_safe_float(row.get("volume")) or 0)
+            if not clock or price is None:
+                continue
+            out.append(
+                {
+                    "time": f"{day} {clock}",
+                    "open": price,
+                    "high": price,
+                    "low": price,
+                    "close": price,
+                    "volume": minute_vol,
+                }
+            )
+    return out
+
+
+def _aggregate_hk_minline_to_daily(symbol_digits: str, days: int) -> Optional[List[Dict]]:
+    groups = _fetch_sina_hk_minline_groups(symbol_digits, days)
+    if not groups:
+        return None
+    bars = []
+    try:
+        for day_rows in groups:
+            if not day_rows:
+                continue
+            first = day_rows[0]
+            day = first.get("date")
+            if not day:
+                continue
+            prices = [_safe_float(x.get("price")) for x in day_rows]
+            vols = [int(_safe_float(x.get("volume")) or 0) for x in day_rows]
+            prices = [p for p in prices if p is not None]
+            if not prices:
+                continue
+            bars.append(
+                {
+                    "time": f"{day} 00:00:00",
+                    "open": prices[0],
+                    "high": max(prices),
+                    "low": min(prices),
+                    "close": prices[-1],
+                    "volume": sum(vols),
+                }
+            )
+        return bars or None
+    except Exception:
+        return None
+
+
+def _hk_symbol_digits(symbol_info: Dict) -> Optional[str]:
+    digits = re.sub(r"[^0-9]", "", symbol_info.get("yahoo_symbol", ""))
+    if not digits:
+        return None
+    return digits.zfill(5)
+
+
+def fetch_sina_hk_minute(symbol_info: Dict, days: int) -> Optional[List[Dict]]:
+    digits = _hk_symbol_digits(symbol_info)
+    if not digits:
+        return None
+    groups = _fetch_sina_hk_minline_groups(digits, days)
+    records = _records_from_sina_hk_minline(groups)
+    return records or None
+
+
+def fetch_sina_history(symbol_info: Dict, interval: str, days: int) -> Optional[List[Dict]]:
+    code = symbol_info.get("sina_code")
+    if not code:
+        return None
+    if symbol_info["market"] == "HK" and interval in TENCENT_MINUTE_INTERVALS:
+        records = fetch_sina_hk_minute(symbol_info, days)
+        return records if records else None
+    count = max(30, min(1023, days + 10))
+    min_bars = 10 if interval == "1d" else 4
+    records = _fetch_sina_kline_api(code, interval, count)
+    if records and len(records) >= min_bars:
+        return records
+    if symbol_info["market"] == "HK" and interval == "1d":
+        digits = _hk_symbol_digits(symbol_info)
+        if not digits:
+            return None
+        aggregated = _aggregate_hk_minline_to_daily(digits, days)
+        if aggregated and len(aggregated) >= 3:
+            return aggregated
+    return None
+
+
+def fetch_yahooquery_realtime(yahoo_symbol: str) -> Optional[Dict]:
+    try:
+        from yahooquery import Ticker
+    except Exception:
+        return None
+    try:
+        ticker = Ticker(yahoo_symbol, asynchronous=False)
+        prices = ticker.price
+        data = prices.get(yahoo_symbol) if isinstance(prices, dict) else None
+        if not isinstance(data, dict):
+            return None
+        market_state = str(data.get("marketState") or "UNKNOWN").upper()
+        pre_price = _safe_float(data.get("preMarketPrice"))
+        prev_close = _safe_float(data.get("regularMarketPreviousClose") or data.get("previousClose"))
+        regular_price = _safe_float(data.get("regularMarketPrice"))
+        post_price = _safe_float(data.get("postMarketPrice"))
+
+        if market_state == "PRE" and pre_price is not None and prev_close:
+            price = pre_price
+        elif market_state == "POST" and post_price is not None and prev_close:
+            price = post_price
+        elif regular_price is not None:
+            price = regular_price
+        elif pre_price is not None:
+            price = pre_price
+            market_state = "PRE"
+        else:
+            return None
+
+        if prev_close is None or prev_close <= 0:
+            return None
+
+        premarket = None
+        if pre_price is not None and prev_close:
+            premarket = {
+                "price": round(pre_price, 4),
+                "change": round(pre_price - prev_close, 4),
+                "change_pct": round((pre_price - prev_close) / prev_close * 100, 4),
+                "time": str(data.get("preMarketTime") or ""),
+            }
+
+        open_v = _safe_float(data.get("regularMarketOpen") or data.get("preMarketOpen"))
+        high = _safe_float(data.get("regularMarketDayHigh") or data.get("preMarketDayHigh"))
+        low = _safe_float(data.get("regularMarketDayLow") or data.get("preMarketDayLow"))
+        volume_raw = data.get("regularMarketVolume") or data.get("preMarketVolume")
+        volume = int(volume_raw) if volume_raw not in (None, 0) else None
+        quote_time = data.get("regularMarketTime") or data.get("preMarketTime")
+
+        return _build_realtime_payload(
+            price=price,
+            prev_close=prev_close,
+            open_v=open_v,
+            high=high,
+            low=low,
+            volume=volume,
+            market_state=market_state,
+            premarket=premarket,
+            name=data.get("shortName") or data.get("longName"),
+            currency=data.get("currency"),
+            quote_time=str(quote_time) if quote_time else None,
+        )
+    except Exception:
+        return None
+
+
+def enrich_realtime_premarket(data: Optional[Dict], yahoo_symbol: str) -> Optional[Dict]:
+    if not data:
+        return data
+    if data.get("premarket"):
+        return data
+    yq = fetch_yahooquery_realtime(yahoo_symbol)
+    if yq and yq.get("premarket"):
+        merged = dict(data)
+        merged["premarket"] = yq["premarket"]
+        if merged.get("market_state") in {None, "", "UNKNOWN"} and yq.get("market_state"):
+            merged["market_state"] = yq["market_state"]
+        return merged
+    return data
 
 
 def fetch_yfinance_fundamental(yahoo_symbol: str) -> Optional[Dict]:

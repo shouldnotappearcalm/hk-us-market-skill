@@ -7,17 +7,21 @@ from datetime import datetime
 try:
     from scripts.hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
     from scripts.hkus_data_sources import (
+        enrich_realtime_premarket,
+        fetch_sina_quote,
         fetch_tencent_quote,
-        fetch_yahooquery_history,
         fetch_yahoo_chart_realtime,
+        fetch_yahooquery_realtime,
         fetch_yfinance_realtime,
     )
 except Exception:
     from hkus_common import build_fallback_chain, build_response, normalize_symbol, pick_first_available
     from hkus_data_sources import (
+        enrich_realtime_premarket,
+        fetch_sina_quote,
         fetch_tencent_quote,
-        fetch_yahooquery_history,
         fetch_yahoo_chart_realtime,
+        fetch_yahooquery_realtime,
         fetch_yfinance_realtime,
     )
 
@@ -26,32 +30,15 @@ def fetch_symbol_realtime(symbol: str):
     symbol_info = normalize_symbol(symbol)
     chain = build_fallback_chain(symbol_info["market"], "realtime")
     yahoo_symbol = symbol_info["yahoo_symbol"]
-    yahooquery_hist = fetch_yahooquery_history(yahoo_symbol, "1d", 7)
-    yahooquery_rt = None
-    if yahooquery_hist:
-        last = yahooquery_hist[-1]
-        prev = yahooquery_hist[-2] if len(yahooquery_hist) > 1 else yahooquery_hist[-1]
-        close = last.get("close")
-        prev_close = prev.get("close")
-        if close is not None and prev_close is not None:
-            change = close - prev_close
-            yahooquery_rt = {
-                "price": close,
-                "open": last.get("open"),
-                "high": last.get("high"),
-                "low": last.get("low"),
-                "previous_close": prev_close,
-                "change": round(change, 4),
-                "change_pct": round(change / prev_close * 100, 4) if prev_close else 0.0,
-                "volume": last.get("volume"),
-            }
     data_map = {
+        "tencent_quote": fetch_tencent_quote(symbol_info),
+        "sina_quote": fetch_sina_quote(symbol_info),
+        "yahooquery_realtime": fetch_yahooquery_realtime(yahoo_symbol),
         "yfinance": fetch_yfinance_realtime(yahoo_symbol),
-        "yahooquery_history": yahooquery_rt,
         "yahoo_chart": fetch_yahoo_chart_realtime(yahoo_symbol),
-        "tencent_quote": fetch_tencent_quote(yahoo_symbol) if symbol_info["market"] == "HK" else None,
     }
     picked = pick_first_available(data_map, chain)
+    picked["data"] = enrich_realtime_premarket(picked.get("data"), yahoo_symbol)
     return build_response(symbol_info, "realtime", picked)
 
 

@@ -19,7 +19,31 @@ def test_normalize_hk_symbol_short_code():
 
 def test_build_fallback_chain_for_us_history():
     chain = build_fallback_chain("US", "history")
-    assert chain == ["yfinance", "yahooquery_history", "yahoo_chart"]
+    assert chain == [
+        "tencent_history",
+        "sina_history",
+        "yfinance",
+        "yahooquery_history",
+        "yahoo_chart",
+    ]
+
+
+def test_build_fallback_chain_for_us_realtime():
+    chain = build_fallback_chain("US", "realtime")
+    assert chain[0] == "tencent_quote"
+    assert chain[1] == "sina_quote"
+    assert "yahooquery_realtime" in chain
+
+
+def test_normalize_symbol_includes_source_codes():
+    us = normalize_symbol("AAPL")
+    assert us["tencent_code"] == "usAAPL"
+    assert us["tencent_kline_code"] == "usAAPL.OQ"
+    assert us["sina_code"] == "gb_aapl"
+    hk = normalize_symbol("0700.HK")
+    assert hk["tencent_code"] == "hk00700"
+    assert hk["tencent_kline_code"] == "hk00700"
+    assert hk["sina_code"] == "hk00700"
 
 
 def test_pick_first_available_marks_fallback():
