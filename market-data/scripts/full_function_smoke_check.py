@@ -42,7 +42,7 @@ def _run_case(name: str, cmd: str, extra_env=None, timeout=35):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="全功能回测 + 强制降级验证")
+    parser = argparse.ArgumentParser(description="数据入口检查 + 强制降级验证")
     parser.add_argument("--us-symbol", default="AAPL")
     parser.add_argument("--hk-symbol", default="0700.HK")
     parser.add_argument("--json", action="store_true", dest="output_json")
@@ -80,7 +80,7 @@ def main():
         ),
         (
             "forced_history_us_failover",
-            f"python3 scripts/fetch_history_hkus.py --symbol {args.us_symbol} --interval 1d --days 120 --count 60 --json",
+            f"python3 scripts/fetch_history_hkus.py --symbol {args.us_symbol} --interval 1d --days 120 --count 60 --adjust split_adjusted --no-cache --json",
             {"HKUS_DISABLE_SOURCES": "tencent_history"},
         ),
         (

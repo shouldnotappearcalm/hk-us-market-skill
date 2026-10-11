@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
+import math
 import threading
 from zoneinfo import ZoneInfo
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from io import StringIO
 from typing import Dict, List, Optional
 
@@ -87,27 +88,10 @@ def _safe_float(value) -> Optional[float]:
     if value in (None, "", "-"):
         return None
     try:
-        return float(value)
+        result = float(value)
+        return result if math.isfinite(result) else None
     except (TypeError, ValueError):
         return None
-
-
-def _market_state_from_sina_us_time(quote_time: Optional[str]) -> str:
-    if not quote_time or " " not in quote_time:
-        return "UNKNOWN"
-    try:
-        clock = quote_time.split(" ")[1]
-        hour, minute = [int(x) for x in clock.split(":")[:2]]
-        mins = hour * 60 + minute
-        if 16 * 60 <= mins < 21 * 60 + 30:
-            return "PRE"
-        if mins >= 21 * 60 + 30 or mins < 4 * 60:
-            return "REGULAR"
-        if 4 * 60 <= mins < 8 * 60:
-            return "POST"
-        return "CLOSED"
-    except Exception:
-        return "UNKNOWN"
 
 
 def _market_state_from_tencent(status_code: str, market: str) -> str:
@@ -138,6 +122,7 @@ def _build_realtime_payload(
     name: Optional[str] = None,
     currency: Optional[str] = None,
     quote_time: Optional[str] = None,
+    source_timezone: Optional[str] = None,
 ) -> Dict:
     change = price - prev_close
     change_pct = (change / prev_close * 100) if prev_close else 0.0
@@ -158,7 +143,14 @@ def _build_realtime_payload(
     if currency:
         payload["currency"] = currency
     if quote_time:
+        payload["quote_time_raw"] = quote_time
         payload["quote_time"] = quote_time
+        if source_timezone:
+            stamp = pd.Timestamp(quote_time)
+            stamp = stamp.tz_localize(source_timezone) if stamp.tzinfo is None else stamp
+            target = "Asia/Hong_Kong" if currency == "HKD" else "America/New_York"
+            stamp = stamp.tz_convert(target)
+            payload.update(quote_time=stamp.isoformat(), trade_date=stamp.date().isoformat(), timezone=target, quote_time_basis="provider_snapshot_time")
     return payload
 
 
@@ -178,18 +170,20 @@ def _to_records(df: pd.DataFrame, limit: Optional[int] = None) -> List[Dict]:
     rename_map = {out.columns[0]: "time"}
     out = out.rename(columns=rename_map)
     if "time" in out.columns:
-        out["time"] = pd.to_datetime(out["time"], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
+        out["time"] = [pd.Timestamp(value).isoformat() if pd.notna(value) else None for value in out["time"]]
     numeric_cols = [c for c in out.columns if c != "time"]
     for col in numeric_cols:
         out[col] = pd.to_numeric(out[col], errors="coerce")
     return out.astype(object).where(pd.notna(out), None).to_dict(orient="records")
 
 
-def fetch_yfinance_history(yahoo_symbol: str, interval: str, days: int) -> Optional[List[Dict]]:
+def fetch_yfinance_history(yahoo_symbol: str, interval: str, days: int, adjust: str = "split_adjusted") -> Optional[List[Dict]]:
+    if adjust not in ("split_adjusted", "total_return"):
+        raise ValueError("Yahoo OHLC is split-adjusted even with auto_adjust=False; request split_adjusted or total_return explicitly")
     yf = _ensure_yfinance()
     ticker = yf.Ticker(yahoo_symbol)
     start = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-    hist = ticker.history(start=start, interval=interval, auto_adjust=False)
+    hist = ticker.history(start=start, interval=interval, auto_adjust=(adjust == "total_return"), timeout=6)
     if hist is None or hist.empty:
         return None
     cols = ["Open", "High", "Low", "Close", "Volume"]
@@ -218,8 +212,10 @@ def fetch_stooq_history(yahoo_symbol: str, days: int) -> Optional[List[Dict]]:
         return None
 
 
-def fetch_yahoo_chart_history(yahoo_symbol: str, interval: str, days: int) -> Optional[List[Dict]]:
-    period2 = int(datetime.now().timestamp())
+def fetch_yahoo_chart_history(yahoo_symbol: str, interval: str, days: int, adjust: str = "split_adjusted") -> Optional[List[Dict]]:
+    if adjust != "split_adjusted":
+        raise ValueError("Yahoo chart provides split_adjusted OHLC; raw/qfq/total_return unsupported")
+    period2 = int(datetime.now(timezone.utc).timestamp())
     period1 = int((datetime.now() - timedelta(days=days)).timestamp())
     params = {"interval": interval, "period1": period1, "period2": period2}
     headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json,text/plain,*/*"}
@@ -262,7 +258,7 @@ def fetch_yahoo_chart_history(yahoo_symbol: str, interval: str, days: int) -> Op
                 continue
             out.append(
                 {
-                    "time": datetime.fromtimestamp(t).strftime("%Y-%m-%d %H:%M:%S"),
+                    "time": datetime.fromtimestamp(t, ZoneInfo(result.get("meta", {}).get("exchangeTimezoneName") or ("Asia/Hong_Kong" if yahoo_symbol.endswith(".HK") else "America/New_York"))).isoformat(),
                     "open": open_v,
                     "high": high_v,
                     "low": low_v,
@@ -275,7 +271,9 @@ def fetch_yahoo_chart_history(yahoo_symbol: str, interval: str, days: int) -> Op
         return None
 
 
-def fetch_yahooquery_history(yahoo_symbol: str, interval: str, days: int) -> Optional[List[Dict]]:
+def fetch_yahooquery_history(yahoo_symbol: str, interval: str, days: int, adjust: str = "split_adjusted") -> Optional[List[Dict]]:
+    if adjust not in ("split_adjusted", "total_return"):
+        raise ValueError("Yahoo OHLC is split-adjusted even with auto_adjust=False; request split_adjusted or total_return explicitly")
     try:
         from yahooquery import Ticker
     except Exception:
@@ -283,7 +281,7 @@ def fetch_yahooquery_history(yahoo_symbol: str, interval: str, days: int) -> Opt
     start = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     try:
         ticker = Ticker(yahoo_symbol)
-        df = ticker.history(start=start, interval=interval)
+        df = ticker.history(start=start, interval=interval, adj_ohlc=(adjust == "total_return"))
         if df is None or len(df) == 0:
             return None
         if isinstance(df.index, pd.MultiIndex):
@@ -330,12 +328,12 @@ def _extract_realtime_from_records(records: List[Dict]) -> Optional[Dict]:
 
 
 def fetch_yfinance_realtime(yahoo_symbol: str) -> Optional[Dict]:
-    intraday = fetch_yfinance_history(yahoo_symbol, "1d", 7)
+    intraday = fetch_yfinance_history(yahoo_symbol, "1d", 7, adjust="split_adjusted")
     return _extract_realtime_from_records(intraday or [])
 
 
 def fetch_yahoo_chart_realtime(yahoo_symbol: str) -> Optional[Dict]:
-    intraday = fetch_yahoo_chart_history(yahoo_symbol, "1d", 7)
+    intraday = fetch_yahoo_chart_history(yahoo_symbol, "1d", 7, adjust="split_adjusted")
     return _extract_realtime_from_records(intraday or [])
 
 
@@ -392,6 +390,7 @@ def _parse_tencent_quote_line(line: str, market: str) -> Optional[Dict]:
             name=name,
             currency=currency,
             quote_time=quote_time,
+            source_timezone="Asia/Hong_Kong" if market == "HK" else "America/New_York",
         )
     except Exception:
         return None
@@ -433,28 +432,28 @@ def _parse_sina_quote_line(line: str, market: str) -> Optional[Dict]:
             if len(arr) < 13:
                 return None
             name = arr[1] or arr[0]
-            price = _safe_float(arr[2])
-            open_v = _safe_float(arr[3])
+            price = _safe_float(arr[6])
+            open_v = _safe_float(arr[2])
             high = _safe_float(arr[4])
             low = _safe_float(arr[5])
-            prev_close = _safe_float(arr[6])
+            prev_close = _safe_float(arr[3])
             volume_raw = _safe_float(arr[12])
             quote_time = f"{arr[17]} {arr[18]}" if len(arr) > 18 else None
             currency = "HKD"
             market_state = "REGULAR"
         else:
-            if len(arr) < 11:
+            if len(arr) < 27:
                 return None
             name = arr[0]
             price = _safe_float(arr[1])
-            prev_close = _safe_float(arr[5])
-            open_v = _safe_float(arr[6])
+            prev_close = _safe_float(arr[26])
+            open_v = _safe_float(arr[5])
             low = _safe_float(arr[7])
-            high = _safe_float(arr[8])
+            high = _safe_float(arr[6])
             volume_raw = _safe_float(arr[10])
             quote_time = arr[3] if len(arr) > 3 else None
             currency = "USD"
-            market_state = _market_state_from_sina_us_time(quote_time)
+            market_state = "UNKNOWN"  # Sina timestamp alone does not establish an extended-session phase.
         if price is None or prev_close is None or price <= 0 or prev_close <= 0:
             return None
         volume = int(volume_raw) if volume_raw is not None else None
@@ -486,6 +485,7 @@ def _parse_sina_quote_line(line: str, market: str) -> Optional[Dict]:
             name=name,
             currency=currency,
             quote_time=quote_time,
+            source_timezone="Asia/Hong_Kong" if market == "HK" else "Asia/Shanghai",
         )
         payload["change"] = payload_change
         payload["change_pct"] = payload_change_pct
@@ -531,10 +531,10 @@ def _resolve_tencent_kline_code(symbol_info: Dict) -> Optional[str]:
     return preset
 
 
-def _extract_tencent_kline_rows(node: Dict, unit: str) -> List:
+def _extract_tencent_kline_rows(node: Dict, unit: str, adjust: str = "raw") -> List:
     if not isinstance(node, dict):
         return []
-    rows = node.get(unit) or node.get(f"qfq{unit}") or []
+    rows = node.get(unit if adjust == "raw" else f"qfq{unit}") or []
     return rows if isinstance(rows, list) else []
 
 
@@ -559,22 +559,26 @@ def _records_from_tencent_kline(rows: List) -> List[Dict]:
     return out
 
 
-def _fetch_tencent_fqkline(code: str, unit: str, days: int) -> Optional[List[Dict]]:
+def _fetch_tencent_fqkline(code: str, unit: str, days: int, adjust: str = "raw") -> Optional[List[Dict]]:
+    if adjust not in ("raw", "qfq"):
+        raise ValueError("Tencent adapter supports raw/qfq only")
+    basis = "" if adjust == "raw" else adjust
     count = max(30, min(1023, days + 10))
     start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     param_candidates = [
-        f"{code},{unit},,,{count},qfq",
-        f"{code},{unit},{start_date},,{count},qfq",
-        f"{code},{unit},{start_date},{datetime.now().strftime('%Y-%m-%d')},{count},qfq",
+        f"{code},{unit},,,{count},{basis}",
+        f"{code},{unit},{start_date},,{count},{basis}",
+        f"{code},{unit},{start_date},{datetime.now().strftime('%Y-%m-%d')},{count},{basis}",
     ]
     min_bars = 10 if unit == "day" else 4
     best: List[Dict] = []
     for param in param_candidates:
         try:
-            resp = _http_session().get(f"{TENCENT_DAY_URL}?param={param}", timeout=15)
+            endpoint = ("https://web.ifzq.gtimg.cn/appstock/app/hkfqkline/get" if code.startswith("hk") else TENCENT_DAY_URL) if adjust != "raw" else "https://web.ifzq.gtimg.cn/appstock/app/kline/kline"
+            resp = _http_session().get(endpoint, params={"param": param}, timeout=6)
             payload = resp.json()
             node = (payload or {}).get("data", {}).get(code, {})
-            rows = _extract_tencent_kline_rows(node, unit)
+            rows = _extract_tencent_kline_rows(node, unit, adjust)
             records = _records_from_tencent_kline(rows)
             if len(records) > len(best):
                 best = records
@@ -641,8 +645,14 @@ def fetch_tencent_minute(symbol_info: Dict) -> Optional[List[Dict]]:
         return None
 
 
-def fetch_tencent_history(symbol_info: Dict, interval: str, days: int) -> Optional[List[Dict]]:
+def fetch_tencent_history(symbol_info: Dict, interval: str, days: int, adjust: str = "raw") -> Optional[List[Dict]]:
+    if adjust not in ("raw", "qfq"):
+        raise ValueError("Tencent adapter supports raw/qfq only")
     if interval in TENCENT_MINUTE_INTERVALS:
+        if adjust != "raw":
+            raise ValueError("Tencent intraday adapter supports raw only")
+        if interval != "1m":
+            raise ValueError("Tencent minute adapter only supports native 1m bars")
         return fetch_tencent_minute(symbol_info)
     unit = TENCENT_INTERVAL_MAP.get(interval)
     if not unit:
@@ -650,7 +660,7 @@ def fetch_tencent_history(symbol_info: Dict, interval: str, days: int) -> Option
     code = _resolve_tencent_kline_code(symbol_info)
     if not code:
         return None
-    records = _fetch_tencent_fqkline(code, unit, days)
+    records = _fetch_tencent_fqkline(code, unit, days, adjust)
     min_bars = 10 if interval == "1d" else 4
     if not records or len(records) < min_bars:
         return None
@@ -781,26 +791,29 @@ def fetch_sina_hk_minute(symbol_info: Dict, days: int) -> Optional[List[Dict]]:
     return records or None
 
 
-def fetch_sina_history(symbol_info: Dict, interval: str, days: int) -> Optional[List[Dict]]:
+def fetch_sina_history(symbol_info: Dict, interval: str, days: int, adjust: str = "raw") -> Optional[List[Dict]]:
+    if adjust != "raw":
+        raise ValueError("Sina adapter supports raw only")
     code = symbol_info.get("sina_code")
     if not code:
         return None
     if symbol_info["market"] == "HK" and interval in TENCENT_MINUTE_INTERVALS:
-        records = fetch_sina_hk_minute(symbol_info, days)
-        return records if records else None
-    count = max(30, min(1023, days + 10))
-    min_bars = 10 if interval == "1d" else 4
-    records = _fetch_sina_kline_api(code, interval, count)
-    if records and len(records) >= min_bars:
+        if interval != "1m":
+            raise ValueError("Sina minute adapter only supports native 1m bars")
+        return fetch_sina_hk_minute(symbol_info, days)
+    records = _fetch_sina_kline_api(code, interval, max(30, min(1023, days + 10)))
+    return records or None
+
+
+def _resample_minutes(records, interval):
+    if not records or interval == "1m":
         return records
-    if symbol_info["market"] == "HK" and interval == "1d":
-        digits = _hk_symbol_digits(symbol_info)
-        if not digits:
-            return None
-        aggregated = _aggregate_hk_minline_to_daily(digits, days)
-        if aggregated and len(aggregated) >= 3:
-            return aggregated
-    return None
+    frame = pd.DataFrame(records)
+    frame.index = pd.to_datetime(frame.pop("time"))
+    frame = frame.resample(f"{int(interval[:-1])}min").agg(
+        {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    ).dropna(subset=["close"])
+    return _to_records(frame)
 
 
 def fetch_yahooquery_realtime(yahoo_symbol: str) -> Optional[Dict]:
@@ -955,18 +968,10 @@ def fetch_sector_etf(sector_name: str, days: int = 30, etf_symbol: str = None) -
     if not etf:
         raise ValueError(f"unknown_sector: {sector_name}; provide --etf explicitly")
     try:
-        from .hkus_common import normalize_symbol, build_fallback_chain, pick_first_available
+        from .fetch_history_hkus import fetch_symbol_history
     except ImportError:
-        from hkus_common import normalize_symbol, build_fallback_chain, pick_first_available
-    info = normalize_symbol(etf)
-    chain = build_fallback_chain("US", "history")
-    picked = pick_first_available({
-        "tencent_history": lambda: fetch_tencent_history(info, "1d", days),
-        "sina_history": lambda: fetch_sina_history(info, "1d", days),
-        "yfinance": lambda: fetch_yfinance_history(etf, "1d", days),
-        "yahooquery_history": lambda: fetch_yahooquery_history(etf, "1d", days),
-        "yahoo_chart": lambda: fetch_yahoo_chart_history(etf, "1d", days),
-    }, chain)
+        from fetch_history_hkus import fetch_symbol_history
+    picked = fetch_symbol_history(etf, "1d", days, "", "", max(30, days), adjust="raw")
     bars = picked["data"]
     df = pd.DataFrame(bars).dropna(subset=["close"])
     if df.empty:

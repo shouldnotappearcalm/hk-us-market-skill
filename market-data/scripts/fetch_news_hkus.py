@@ -11,9 +11,11 @@ from zoneinfo import ZoneInfo
 try:
     from .hkus_common import normalize_symbol, call_source
     from .hkus_data_sources import _http_session
+    from .hkus_runtime import submit_source
 except ImportError:
     from hkus_common import normalize_symbol, call_source
     from hkus_data_sources import _http_session
+    from hkus_runtime import submit_source
 
 TZ=ZoneInfo("Asia/Shanghai")
 
@@ -104,7 +106,7 @@ def run(symbol=None,keyword=None,days=7,limit=100,pages=2,max_seconds=20,source=
             rows=[];diagnostic={"source":name,"status":"unavailable","error":f"{type(exc).__name__}: {str(exc)[:240]}"}
         diagnostic["elapsed_sec"]=round(time.monotonic()-started,3)
         finished.put((name,rows,diagnostic))
-    for name,fn in jobs.items():threading.Thread(target=worker,args=(name,fn),daemon=True).start()
+    futures={name:submit_source(lambda name=name,fn=fn:worker(name,fn)) for name,fn in jobs.items()}
     pending=set(jobs);data=[];diagnostics=[]
     while pending:
         try:name,rows,diagnostic=finished.get(timeout=max(0,deadline-time.monotonic()))
@@ -112,6 +114,7 @@ def run(symbol=None,keyword=None,days=7,limit=100,pages=2,max_seconds=20,source=
         pending.remove(name)
         data.extend({"source":name,"raw":item} for item in rows)
         diagnostics.append(diagnostic)
+    for name in pending:futures[name].cancel()
     diagnostics.extend({"source":name,"status":"timeout","error":"overall deadline exceeded"} for name in sorted(pending))
     diagnostics.sort(key=lambda item:item["source"])
     failed=any(item["status"] in ("unavailable","partial","timeout") for item in diagnostics)

@@ -46,6 +46,7 @@ def _chunk(items: List[str], size: int):
 
 def _quote_row_from_payload(symbol: str, market: str, payload: Dict, source_actual: str) -> Dict:
     return {
+        **payload,
         "symbol": symbol,
         "name": payload.get("name") or symbol,
         "price": payload.get("price"),
@@ -70,7 +71,8 @@ def _fetch_quotes_tencent(symbols: List[str], market: str) -> Dict[str, Dict]:
         code_map[info["tencent_code"]] = info["normalized"]
     for batch in _chunk(list(code_map.keys()), 200):
         url = TENCENT_BATCH_URL + ",".join(batch)
-        resp = s.get(url, timeout=20)
+        resp = s.get(url, timeout=6)
+        resp.raise_for_status()
         for line in resp.text.splitlines():
             if "~" not in line:
                 continue
@@ -99,7 +101,8 @@ def _fetch_quotes_sina(symbols: List[str], market: str) -> Dict[str, Dict]:
         code_map[info["sina_code"]] = info["normalized"]
     for batch in _chunk(list(code_map.keys()), 200):
         url = SINA_BATCH_URL + ",".join(batch)
-        resp = s.get(url, timeout=20)
+        resp = s.get(url, timeout=6)
+        resp.raise_for_status()
         for line in resp.text.splitlines():
             if '="' not in line:
                 continue
@@ -204,57 +207,19 @@ def _sort_quotes(data: List[Dict], sort_key: str):
 
 def run(market: str, symbols: str, universe_limit: int, workers: int, top: int, sort_key: str):
     us_symbols, hk_symbols = _build_symbol_pool(market, symbols, universe_limit)
-    quotes = []
-    failed = []
-
-    us_map = _fetch_quotes_tencent(us_symbols, "US") if us_symbols else {}
-    hk_map = _fetch_quotes_tencent(hk_symbols, "HK") if hk_symbols else {}
-
-    missing_us = [sym for sym in us_symbols if sym not in us_map]
-    if missing_us:
-        us_map.update(_fetch_quotes_sina(missing_us, "US"))
-
-    missing_hk = [sym for sym in hk_symbols if sym not in hk_map]
-    if missing_hk:
-        hk_map.update(_fetch_quotes_sina(missing_hk, "HK"))
-
-    # 容错：exchange 名可能和标准化 symbol 不完全一致，这里按 ticker 再映射一次
-    us_by_ticker = {k.split(":")[1]: v for k, v in us_map.items() if ":" in k}
-    for sym in us_symbols:
-        ticker = sym.split(":")[1]
-        item = us_map.get(sym) or us_by_ticker.get(ticker)
-        if item:
-            item["symbol"] = sym
-            quotes.append(item)
+    try:
+        from .fetch_realtime_hkus import run_batch
+    except ImportError:
+        from fetch_realtime_hkus import run_batch
+    result=run_batch(us_symbols+hk_symbols,workers)
+    quotes=[];failed=[]
+    for item in result["results"]:
+        info=normalize_symbol(item["symbol"])
+        if item["ok"]:
+            response=item["result"]
+            quotes.append(_quote_row_from_payload(info["normalized"],info["market"],response["data"],response["source_actual"]))
         else:
-            failed.append({"symbol": sym, "market": "US"})
-
-    for sym in hk_symbols:
-        item = hk_map.get(sym)
-        if item:
-            quotes.append(item)
-        else:
-            failed.append({"symbol": sym, "market": "HK"})
-
-    if failed:
-        recovered = []
-        remain = []
-        with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-            fut_map = {
-                pool.submit(_fallback_single_quote, f["symbol"], f["market"]): f for f in failed
-            }
-            for fut in as_completed(fut_map):
-                req = fut_map[fut]
-                try:
-                    data = fut.result()
-                    if data:
-                        recovered.append(data)
-                    else:
-                        remain.append(req)
-                except Exception:
-                    remain.append(req)
-        quotes.extend(recovered)
-        failed = remain
+            failed.append({"symbol":info["normalized"],"market":info["market"],"error":item.get("error")})
 
     _sort_quotes(quotes, sort_key)
     display = quotes[:top] if top > 0 else quotes

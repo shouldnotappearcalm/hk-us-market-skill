@@ -37,42 +37,73 @@ def fetch_symbol_realtime(symbol: str, with_premarket: bool = False):
         "yfinance": lambda: fetch_yfinance_realtime(yahoo_symbol),
         "yahoo_chart": lambda: fetch_yahoo_chart_realtime(yahoo_symbol),
     }
-    picked = pick_first_available(data_map, chain)
+    picked = pick_first_available(data_map, chain, health_scope="realtime")
     if with_premarket and symbol_info["market"] == "US":
         picked["data"] = enrich_realtime_premarket(picked.get("data"), yahoo_symbol)
     return build_response(symbol_info, "realtime", picked)
 
 
-def run_batch(symbols, workers: int):
-    results = []
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(fetch_symbol_realtime, symbol): symbol for symbol in symbols}
-        for future in as_completed(futures):
-            symbol = futures[future]
-            try:
-                data = future.result()
-                results.append({"ok": True, "symbol": symbol, "result": data})
-            except Exception as exc:
-                results.append({"ok": False, "symbol": symbol, "error": str(exc)})
-    results.sort(key=lambda x: symbols.index(x["symbol"]))
-    success = [x for x in results if x["ok"]]
-    fail = [x for x in results if not x["ok"]]
-    return {
-        "meta": {
-            "requested": len(symbols),
-            "success": len(success),
-            "fail": len(fail),
-            "success_rate": round(len(success) / len(symbols), 4) if symbols else 0.0,
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        },
-        "results": results,
-    }
+def run_batch(symbols, workers: int, no_cache=False):
+    """Use vendor batch requests first, then recover only missing symbols."""
+    try:
+        from .hkus_runtime import call_source, cached_fetch
+        from .fetch_market_realtime_hkus import _fetch_quotes_tencent, _fetch_quotes_sina
+    except ImportError:
+        from hkus_runtime import call_source, cached_fetch
+        from fetch_market_realtime_hkus import _fetch_quotes_tencent, _fetch_quotes_sina
+    unique = list(dict.fromkeys(symbols))
+    if len(unique) > 1000 or not 1 <= workers <= 32:
+        raise ValueError("batch <= 1000 symbols; workers=1..32")
+    key = "quotes-batch-v2:" + ",".join(unique)
+    def load(_):
+        quotes, diagnostics = {}, []
+        disabled = set(__import__("os").environ.get("HKUS_DISABLE_SOURCES", "").split(","))
+        for market in ("US", "HK"):
+            group = [symbol for symbol in unique if normalize_symbol(symbol)["market"] == market]
+            for name, fn in (("tencent_quote", _fetch_quotes_tencent), ("sina_quote", _fetch_quotes_sina)):
+                missing = [symbol for symbol in group if normalize_symbol(symbol)["normalized"] not in quotes]
+                if not missing or name in disabled:
+                    continue
+                try:
+                    rows = call_source(lambda fn=fn, missing=missing, market=market: fn(missing, market), 6)
+                    quotes.update(rows)
+                except Exception as exc:
+                    diagnostics.append({"source": name, "market": market, "error": str(exc)})
+        results = []
+        missing = [symbol for symbol in unique if normalize_symbol(symbol)["normalized"] not in quotes]
+        recovered = {}
+        if missing:
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                jobs = {pool.submit(fetch_symbol_realtime, symbol): symbol for symbol in missing}
+                for job in as_completed(jobs):
+                    symbol = jobs[job]
+                    try:
+                        recovered[symbol] = {"ok": True, "symbol": symbol, "result": job.result()}
+                    except Exception as exc:
+                        recovered[symbol] = {"ok": False, "symbol": symbol, "error": str(exc)}
+        for symbol in unique:
+            info = normalize_symbol(symbol)
+            row = quotes.get(info["normalized"])
+            if row:
+                source = row["source_actual"]
+                picked = {"source_primary": "tencent_quote", "source_actual": source,
+                          "fallback_used": source != "tencent_quote", "fallback_chain": ["tencent_quote"] if source == "tencent_quote" else ["tencent_quote", "sina_quote"], "data": row}
+                results.append({"ok": True, "symbol": symbol, "result": build_response(info, "realtime", picked)})
+            else:
+                results.append(recovered[symbol])
+        success = sum(row["ok"] for row in results)
+        return {"meta": {"requested": len(unique), "success": success, "fail": len(unique)-success,
+                         "success_rate": success/len(unique) if unique else 0, "batch_errors": diagnostics}, "results": results}
+    result, cache = cached_fetch(key, load, 3, no_cache, cacheable=lambda result: result["meta"]["fail"] == 0)
+    result["meta"].update(cache)
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description="HK+US 实时快照（多渠道兜底）")
     parser.add_argument("--symbol", help="单个标的，如 AAPL 或 0700.HK")
     parser.add_argument("--batch", help="批量标的，逗号分隔")
+    parser.add_argument("--no-cache", action="store_true", help="跳过批量快照3秒缓存")
     parser.add_argument("--with-premarket", action="store_true", help="单票美股显式补查盘前信息；默认不额外请求Yahoo")
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--json", action="store_true", dest="output_json")
@@ -83,7 +114,7 @@ def main():
 
     if args.batch:
         symbols = [x.strip() for x in args.batch.split(",") if x.strip()]
-        result = run_batch(symbols, args.workers)
+        result = run_batch(symbols, args.workers, args.no_cache)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 

@@ -1,8 +1,10 @@
 requests>=2.32
 pandas>=2.2
 numpy>=1.26
-yfinance>=0.2.54
+yfinance>=1.7.0,<2
 yahooquery>=2.3
 pandas_datareader>=0.10
 openpyxl>=3.1
 pytest>=8
+exchange-calendars>=4.13.2,<5
+feedparser>=6.0

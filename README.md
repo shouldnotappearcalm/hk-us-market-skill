@@ -270,3 +270,6 @@ python3 market-data/scripts/fetch_news_hkus.py --symbol 09988.HK --keyword 阿�
 ```
 
 原始记录在 `data[].raw`，保留Yahoo/东财字段，不做业务分类、情绪判断或摘要。港股Yahoo为空时通过显式中文关键词查东财，并保留两源状态。行情fallback现在按需执行、失败限时；行业ETF代理不冒充真实行业成分。实测与原始输出位置见[数据报告](reports/data-health-2026-10-11.md)。
+
+
+数据能力新增：真实行业成员、港交所披露、公司RSS、原始附件、港美三表、逐源诊断及透明缓存。详见 [数据契约](market-data/references/data-contracts.md) 和 [本轮验证](reports/data-upgrade-2026-10-11.md)。

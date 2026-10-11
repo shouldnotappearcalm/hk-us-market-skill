@@ -24,16 +24,12 @@ except Exception:
     )
 
 
-def _get_history(symbol_info, days: int, interval: str):
-    chain = build_fallback_chain(symbol_info["market"], "technical")
-    data_map = {
-        "tencent_history": lambda: fetch_tencent_history(symbol_info, interval, days),
-        "sina_history": lambda: fetch_sina_history(symbol_info, interval, days),
-        "yfinance": lambda: fetch_yfinance_history(symbol_info["yahoo_symbol"], interval, days),
-        "yahooquery_history": lambda: fetch_yahooquery_history(symbol_info["yahoo_symbol"], interval, days),
-        "yahoo_chart": lambda: fetch_yahoo_chart_history(symbol_info["yahoo_symbol"], interval, days),
-    }
-    return pick_first_available(data_map, chain)
+def _get_history(symbol_info, days: int, interval: str, adjust="raw", no_cache=False):
+    try:
+        from .fetch_history_hkus import fetch_symbol_history
+    except ImportError:
+        from fetch_history_hkus import fetch_symbol_history
+    return fetch_symbol_history(symbol_info["normalized"], interval, days, "", "", max(days, 120), adjust, no_cache)
 
 
 def _calc_indicators(df: pd.DataFrame):
@@ -95,37 +91,39 @@ def _signals(df: pd.DataFrame):
     return out
 
 
-def run(symbol: str, days: int, interval: str):
+def run(symbol: str, days: int, interval: str, adjust="raw", no_cache=False):
     symbol_info = normalize_symbol(symbol)
-    picked = _get_history(symbol_info, days, interval)
+    picked = _get_history(symbol_info, days, interval, adjust, no_cache)
     data = picked["data"] or []
     df = pd.DataFrame(data)
     if df.empty:
         raise ValueError("source_unavailable: 无可用K线数据")
-    df["time"] = pd.to_datetime(df["time"], errors="coerce")
+    df["time"] = pd.to_datetime(df["time"], errors="coerce", utc=True).dt.tz_convert("Asia/Hong_Kong" if symbol_info["market"] == "HK" else "America/New_York")
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     df = df.dropna(subset=["time", "close"]).sort_values("time")
     calc_df = _calc_indicators(df)
     tail = calc_df.tail(120).copy()
-    tail["time"] = tail["time"].dt.strftime("%Y-%m-%d %H:%M:%S")
+    tail["time"] = tail["time"].map(lambda value: value.isoformat())
     picked["data"] = {
         "series": json.loads(tail.to_json(orient="records", date_format="iso")),
         "latest": json.loads(tail.tail(1).to_json(orient="records", date_format="iso"))[0] if not tail.empty else {},
         "signals": _signals(tail),
     }
-    return build_response(symbol_info, interval, picked)
+    return picked
 
 
 def main():
     parser = argparse.ArgumentParser(description="HK+US 技术指标（多渠道兜底）")
     parser.add_argument("symbol", help="标的，如 AAPL 或 0700.HK")
+    parser.add_argument("--adjust", choices=["raw", "qfq", "split_adjusted", "total_return"], default="raw")
+    parser.add_argument("--no-cache", action="store_true")
     parser.add_argument("--days", type=int, default=180)
     parser.add_argument("--interval", default="1d", choices=["1d", "1wk", "1mo"])
     parser.add_argument("--json", action="store_true", dest="output_json")
     args = parser.parse_args()
 
-    result = run(args.symbol, args.days, args.interval)
+    result = run(args.symbol, args.days, args.interval, args.adjust, args.no_cache)
     if args.output_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

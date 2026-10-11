@@ -18,7 +18,7 @@ def run(symbol: str):
         "yfinance": lambda: fetch_yfinance_fundamental(yahoo_symbol),
         "yahooquery": lambda: fetch_yahooquery_fundamental(yahoo_symbol),
     }
-    picked = pick_first_available(data_map, chain)
+    picked = pick_first_available(data_map, chain, health_scope="fundamental")
     return build_response(symbol_info, "fundamental", picked)
 
 
