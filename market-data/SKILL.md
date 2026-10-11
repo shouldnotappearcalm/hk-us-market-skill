@@ -11,6 +11,7 @@ description: 港股与美股数据能力。支持实时、历史K线、技术指
 
 ## 目录
 
+- `scripts/fetch_news_hkus.py`（港美证券新闻/行业关键词新闻，原始输出）
 - `scripts/fetch_realtime_hkus.py`
 - `scripts/fetch_history_hkus.py`
 - `scripts/fetch_technical_hkus.py`
@@ -24,7 +25,7 @@ description: 港股与美股数据能力。支持实时、历史K线、技术指
 ## 安装依赖
 
 ```bash
-pip3 install yfinance pandas numpy requests pandas_datareader yahooquery pytest
+pip3 install -r requirements.txt
 ```
 
 ## 代码规范
@@ -44,7 +45,7 @@ pip3 install yfinance pandas numpy requests pandas_datareader yahooquery pytest
 - 实时：`tencent_quote -> sina_quote -> yahooquery_realtime -> yfinance -> yahoo_chart`
 - 历史/技术：`tencent_history -> sina_history -> yfinance -> yahooquery_history -> yahoo_chart`
 
-腾讯、新浪均区分港/美代码。实时用 `usAAPL` / `hk00700`；K 线用 `fqkline/get`，美股需带交易所后缀（如 `usAAPL.OQ`、`usJPM.N`、`usSPY.AM`，由 qt 行情自动解析）。分钟 K 港股走 `minute/query`；美股盘中仅返回当前分钟快照，历史分钟由 Yahoo 兜底。实时结果含 `market_state` 与 `premarket`；盘中若主源未带盘前，会用 Yahoo 补齐。
+腾讯、新浪均区分港/美代码。实时用 `usAAPL` / `hk00700`；K 线用 `fqkline/get`，美股需带交易所后缀（如 `usAAPL.OQ`、`usJPM.N`、`usSPY.AM`，由 qt 行情自动解析）。分钟 K 港股走 `minute/query`；美股盘中仅返回当前分钟快照，历史分钟由 Yahoo 兜底。实时结果含 `market_state` 与 `premarket`；单票美股仅显式加 `--with-premarket` 时补查Yahoo；默认不增加额外请求。
 
 ### 其他
 
@@ -96,3 +97,14 @@ python3 scripts/fetch_market_realtime_hkus.py --symbols NASDAQ:AAPL,NYSE:MSFT,07
 - 默认输出简版摘要
 - 带 `--json` 时输出完整结构
 - 若主备源都失败，返回错误标识 `source_unavailable`
+
+
+## 新闻与数据真实性
+
+- 新闻优先 `fetch_news_hkus.py --symbol NYSE:BABA --days 7 --json`。港股可用 `--symbol 09988.HK --keyword 阿里巴巴` 同时查两源，行业可用 `--keyword 半导体 --source eastmoney`。每条`raw`保留上游字段，不做相关性/事件/情绪硬规则分类，提供原始结果供调用方分析。
+- Yahoo空结果与源失败分开；原始content可能只是摘要。`days/limit/pages`控制窗口与覆盖，保留来源状态。新闻当前无新增磁盘结果缓存。
+- 行情/历史/技术/基本面按需降级，禁用源不调用；异常/空结果继续下一源，source_errors与source_elapsed_sec记录诊断。HKUS_SOURCE_TIMEOUT默认6秒，HKUS_MAX_SECONDS默认25秒。
+- 行业ETF映射是显式代理，不是行业分类/成分库；不认识的行业返回错误，可用`--etf SOXX`显式选代理。
+- 原始报价时间`quote_time`与查询时间`updated_at`分开。未知美股交易所输出US占位，可显式指定NYSE:BABA；不要凭默认值推断真实上市地点。
+- 正式数据验证命令：在仓库根目录 `python -m pytest market-data/tests -q`；`python market-data/scripts/full_function_smoke_check.py --json`。这两条不运行策略或模拟仓。
+- 实测与限制：`../reports/data-health-2026-10-11.md`。

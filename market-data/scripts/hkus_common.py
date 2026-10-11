@@ -1,5 +1,8 @@
 import re
 import os
+import queue
+import threading
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -37,7 +40,7 @@ def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
         digits = re.sub(r"[^0-9]", "", symbol)
         if not digits:
             raise ValueError(f"无法识别港股代码: {raw_symbol}")
-        digits = digits.zfill(4)
+        digits = str(int(digits)).zfill(4)
         hk = f"{digits}.HK"
         tencent_code = f"hk{digits.zfill(5)}"
         return {
@@ -71,7 +74,7 @@ def normalize_symbol(raw_symbol: str) -> Dict[str, str]:
     ticker = re.sub(r"[^A-Z]", "", symbol)
     if not ticker:
         raise ValueError(f"无法识别代码: {raw_symbol}")
-    exchange = DEFAULT_US_EXCHANGE.get(ticker, "NASDAQ")
+    exchange = DEFAULT_US_EXCHANGE.get(ticker, "US")
     normalized = f"{exchange}:{ticker}"
     return {
         "market": "US",
@@ -96,31 +99,61 @@ def build_fallback_chain(market: str, capability: str) -> List[str]:
         if c in {"history", "technical"}:
             return ["tencent_history", "sina_history", *_YAHOO_HISTORY_CHAIN]
         return ["tencent_quote", "sina_quote", *_YAHOO_REALTIME_CHAIN]
-    if m == "US" and c in {"fundamental", "sector"}:
+    if m in {"US", "HK"} and c in {"fundamental", "sector"}:
         return ["yfinance", "yahooquery"]
     if m == "US" and c == "macro":
         return ["fred_reader", "fred_csv"]
     return ["yfinance"]
 
 
+def call_source(fn, timeout):
+    """Bound waiting for an external source without joining a stuck thread."""
+    finished = queue.Queue()
+    def run():
+        try:
+            finished.put((fn(), None))
+        except Exception as exc:
+            finished.put((None, exc))
+    threading.Thread(target=run, daemon=True).start()
+    try:
+        value, error = finished.get(timeout=max(0.01, timeout))
+    except queue.Empty:
+        raise TimeoutError(f"source timeout after {timeout:.2f}s")
+    if error is not None:
+        raise error
+    return value
+
+
 def pick_first_available(data_by_source: Dict[str, Any], chain: List[str]) -> Dict[str, Any]:
-    disabled_raw = os.environ.get("HKUS_DISABLE_SOURCES", "")
-    disabled = {x.strip() for x in disabled_raw.split(",") if x.strip()}
-    visited = []
+    disabled = {x.strip() for x in os.environ.get("HKUS_DISABLE_SOURCES", "").split(",") if x.strip()}
+    visited, errors, timings = [], {}, {}
+    source_timeout = max(0.1, min(60, float(os.environ.get("HKUS_SOURCE_TIMEOUT", "6"))))
+    deadline = time.monotonic() + max(0.1, min(60, float(os.environ.get("HKUS_MAX_SECONDS", "25"))))
     for source in chain:
         visited.append(source)
         if source in disabled:
+            errors[source] = "disabled"
             continue
-        value = data_by_source.get(source)
-        if value is not None:
-            return {
-                "source_primary": chain[0],
-                "source_actual": source,
-                "fallback_used": source != chain[0],
-                "fallback_chain": visited.copy(),
-                "data": value,
-            }
-    raise ValueError(f"source_unavailable: {','.join(chain)}")
+        if time.monotonic() >= deadline:
+            errors[source] = "overall deadline exceeded"
+            break
+        started = time.monotonic()
+        try:
+            value = data_by_source.get(source)
+            if callable(value):
+                value = call_source(value, min(source_timeout, deadline - time.monotonic()))
+            if value is None or value == [] or value == {}:
+                errors[source] = "empty response"
+                continue
+            return {"source_primary": chain[0], "source_actual": source,
+                    "fallback_used": source != chain[0], "fallback_chain": visited.copy(),
+                    "source_errors": errors, "source_elapsed_sec": dict(timings, **{source: round(time.monotonic()-started, 3)}),
+                    "data": value}
+        except Exception as exc:
+            errors[source] = f"{type(exc).__name__}: {str(exc)[:220]}"
+        finally:
+            timings[source] = round(time.monotonic() - started, 3)
+    raise ValueError("source_unavailable: " + str(errors))
 
 
 def build_response(
@@ -139,6 +172,8 @@ def build_response(
         "fallback_chain": source_payload["fallback_chain"],
         "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "data": source_payload["data"],
+        "source_errors": source_payload.get("source_errors", {}),
+        "source_elapsed_sec": source_payload.get("source_elapsed_sec", {}),
     }
     if extra:
         payload.update(extra)

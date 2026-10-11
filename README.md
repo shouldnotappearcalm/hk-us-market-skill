@@ -258,3 +258,15 @@ python3 paper-trading/scripts/batch_backtest_hkus.py \
 - 新增脚本优先保持 JSON 字段与现有输出一致，避免下游解析分叉  
 - 对外部数据源保持可回退链路，降低单点失效  
 - 策略侧修改参数时同步更新对应目录的 `SKILL.md` 与本 README 中的对照表  
+
+
+## 数据与港美新闻更新（2026-10-11）
+
+在仓库根目录执行 `pip install -r market-data/requirements.txt`。新闻入口：
+
+```bash
+python3 market-data/scripts/fetch_news_hkus.py --symbol NYSE:BABA --days 7 --json
+python3 market-data/scripts/fetch_news_hkus.py --symbol 09988.HK --keyword 阿里巴巴 --days 7 --json
+```
+
+原始记录在 `data[].raw`，保留Yahoo/东财字段，不做业务分类、情绪判断或摘要。港股Yahoo为空时通过显式中文关键词查东财，并保留两源状态。行情fallback现在按需执行、失败限时；行业ETF代理不冒充真实行业成分。实测与原始输出位置见[数据报告](reports/data-health-2026-10-11.md)。

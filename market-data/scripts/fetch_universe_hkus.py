@@ -28,10 +28,16 @@ def _normalize_us_symbol(exchange: str, ticker: str) -> str:
 
 
 def _normalize_hk_symbol(stock_code: str) -> str:
-    code = "".join(ch for ch in str(stock_code or "") if ch.isdigit())
+    raw = str(stock_code or "").strip()
+    try:
+        number = float(raw)
+        raw = str(int(number)) if number.is_integer() else ""
+    except ValueError:
+        pass
+    code = raw if raw.isdigit() else ""
     if not code:
         return ""
-    return f"{code.zfill(4)}.HK"
+    return f"{str(int(code)).zfill(4)}.HK"
 
 
 def fetch_us_universe() -> List[Dict]:

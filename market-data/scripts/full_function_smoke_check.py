@@ -3,27 +3,33 @@ import argparse
 import json
 import os
 import subprocess
+import shlex
 import sys
 import time
 from datetime import datetime
 
 
-def _run_case(name: str, cmd: str, extra_env=None):
+def _run_case(name: str, cmd: str, extra_env=None, timeout=35):
     env = os.environ.copy()
     if extra_env:
         env.update(extra_env)
     start = time.time()
-    proc = subprocess.run(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=os.path.dirname(__file__) + "/..",
-        env=env,
-        text=True,
-    )
+    argv=shlex.split(cmd)
+    if argv and argv[0]=="python3":argv[0]=sys.executable
+    try:
+        proc = subprocess.run(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+                              cwd=os.path.dirname(__file__)+"/..",env=env,text=True,timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        return {"name":name,"command":argv,"success":False,"exit_code":None,
+                "elapsed_ms":round((time.time()-start)*1000,2),"error":f"timeout after {timeout}s"}
     elapsed = round((time.time() - start) * 1000, 2)
     success = proc.returncode == 0
+    try:
+        payload=json.loads(proc.stdout)
+        if not payload or isinstance(payload,dict) and (payload.get("error") or payload.get("data")==[] or payload.get("meta",{}).get("fail")):
+            success=False
+    except ValueError:
+        success=False
     return {
         "name": name,
         "command": cmd,
@@ -103,6 +109,8 @@ def main():
 
     if args.output_json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
+        if payload["fail"]:
+            raise SystemExit(1)
         return
     print(f"Smoke check total={payload['total']} success={payload['success']} fail={payload['fail']}")
     if fail:

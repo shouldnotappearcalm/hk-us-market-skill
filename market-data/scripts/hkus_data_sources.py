@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import threading
+from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from io import StringIO
 from typing import Dict, List, Optional
@@ -62,7 +64,12 @@ _TENCENT_US_STATUS = {
 }
 
 
+_HTTP = threading.local()
+
+
 def _http_session() -> requests.Session:
+    if hasattr(_HTTP, "session"):
+        return _HTTP.session
     session = requests.Session()
     session.trust_env = False
     session.headers.update(
@@ -72,6 +79,7 @@ def _http_session() -> requests.Session:
             "Referer": "https://finance.sina.com.cn/",
         }
     )
+    _HTTP.session = session
     return session
 
 
@@ -174,7 +182,7 @@ def _to_records(df: pd.DataFrame, limit: Optional[int] = None) -> List[Dict]:
     numeric_cols = [c for c in out.columns if c != "time"]
     for col in numeric_cols:
         out[col] = pd.to_numeric(out[col], errors="coerce")
-    return out.to_dict(orient="records")
+    return out.astype(object).where(pd.notna(out), None).to_dict(orient="records")
 
 
 def fetch_yfinance_history(yahoo_symbol: str, interval: str, days: int) -> Optional[List[Dict]]:
@@ -343,9 +351,9 @@ def _parse_tencent_quote_line(line: str, market: str) -> Optional[Dict]:
         name = arr[1] or None
         market_state = _market_state_from_tencent(status_code, market)
         if market == "HK":
-            prev_close = _safe_float(arr[3])
-            open_v = _safe_float(arr[4])
-            price = _safe_float(arr[5])
+            price = _safe_float(arr[3])
+            prev_close = _safe_float(arr[4])
+            open_v = _safe_float(arr[5])
             volume_raw = _safe_float(arr[6])
             high = _safe_float(arr[33])
             low = _safe_float(arr[34])
@@ -362,6 +370,8 @@ def _parse_tencent_quote_line(line: str, market: str) -> Optional[Dict]:
             return None
         volume = int(volume_raw) if volume_raw is not None else None
         quote_time = arr[30] if len(arr) > 30 and arr[30] else None
+        if datetime.now(ZoneInfo("America/New_York" if market == "US" else "Asia/Hong_Kong")).weekday() >= 5:
+            market_state = "CLOSED"
         premarket = None
         if market == "US" and market_state == "PRE":
             premarket = {
@@ -877,7 +887,10 @@ def fetch_yfinance_fundamental(yahoo_symbol: str) -> Optional[Dict]:
     yf = _ensure_yfinance()
     ticker = yf.Ticker(yahoo_symbol)
     info = ticker.info or {}
-    holders = ticker.institutional_holders
+    try:
+        holders = ticker.institutional_holders
+    except Exception:
+        holders = None
     top_holders = []
     if holders is not None and not holders.empty:
         for _, row in holders.head(15).iterrows():
@@ -918,7 +931,7 @@ def fetch_yahooquery_fundamental(yahoo_symbol: str) -> Optional[Dict]:
         ticker = Ticker(yahoo_symbol)
         summary = ticker.summary_detail.get(yahoo_symbol) or {}
         profile = ticker.asset_profile.get(yahoo_symbol) or {}
-        return {
+        result = {
             "currency": summary.get("currency"),
             "market_cap": summary.get("marketCap"),
             "pe_ttm": summary.get("trailingPE"),
@@ -931,20 +944,30 @@ def fetch_yahooquery_fundamental(yahoo_symbol: str) -> Optional[Dict]:
             "industry": profile.get("industry"),
             "institutional_holders": [],
         }
+        return result if any(v is not None and v != [] for v in result.values()) else None
     except Exception:
         return None
 
 
-def fetch_sector_etf(sector_name: str, days: int = 30) -> Optional[Dict]:
+def fetch_sector_etf(sector_name: str, days: int = 30, etf_symbol: str = None) -> Optional[Dict]:
     key = (sector_name or "").strip().lower()
-    etf = SECTOR_ETF_MAP.get(key)
+    etf = etf_symbol.strip().upper() if etf_symbol else SECTOR_ETF_MAP.get(key)
     if not etf:
-        etf = "SPY"
-    bars = fetch_yfinance_history(etf, "1d", days)
-    if not bars:
-        bars = fetch_yahoo_chart_history(etf, "1d", days)
-    if not bars:
-        return None
+        raise ValueError(f"unknown_sector: {sector_name}; provide --etf explicitly")
+    try:
+        from .hkus_common import normalize_symbol, build_fallback_chain, pick_first_available
+    except ImportError:
+        from hkus_common import normalize_symbol, build_fallback_chain, pick_first_available
+    info = normalize_symbol(etf)
+    chain = build_fallback_chain("US", "history")
+    picked = pick_first_available({
+        "tencent_history": lambda: fetch_tencent_history(info, "1d", days),
+        "sina_history": lambda: fetch_sina_history(info, "1d", days),
+        "yfinance": lambda: fetch_yfinance_history(etf, "1d", days),
+        "yahooquery_history": lambda: fetch_yahooquery_history(etf, "1d", days),
+        "yahoo_chart": lambda: fetch_yahoo_chart_history(etf, "1d", days),
+    }, chain)
+    bars = picked["data"]
     df = pd.DataFrame(bars).dropna(subset=["close"])
     if df.empty:
         return None
@@ -954,6 +977,8 @@ def fetch_sector_etf(sector_name: str, days: int = 30) -> Optional[Dict]:
     return {
         "sector_name": sector_name,
         "mapped_etf": etf,
+        "proxy_type": "US ETF proxy, not actual industry constituents",
+        "source_metadata": {k:v for k,v in picked.items() if k != "data"},
         "period_days": days,
         "period_return_pct": round(ret, 4),
         "bars": df.tail(60).to_dict(orient="records"),
@@ -1007,11 +1032,15 @@ def _fred_csv_fetch(series_id: str, start: datetime, end: datetime) -> Optional[
 def fetch_fred_series(series_id: str, lookback_days: int) -> Dict[str, Optional[List[Dict]]]:
     end = datetime.now()
     start = end - timedelta(days=lookback_days)
-    reader_df = _fred_reader_fetch(series_id, start, end)
-    csv_df = _fred_csv_fetch(series_id, start, end)
-    result = {"fred_reader": None, "fred_csv": None}
-    if reader_df is not None and not reader_df.empty:
-        result["fred_reader"] = _to_records(reader_df, limit=500)
-    if csv_df is not None and not csv_df.empty:
-        result["fred_csv"] = _to_records(csv_df, limit=500)
-    return result
+    # Keep the public source->records map, but query only until one source works.
+    try:
+        from .hkus_common import pick_first_available
+    except ImportError:
+        from hkus_common import pick_first_available
+    def records(fn):
+        df = fn(series_id, start, end)
+        return _to_records(df, limit=500) if df is not None and not df.empty else None
+    picked = pick_first_available({"fred_reader": lambda: records(_fred_reader_fetch),
+                                   "fred_csv": lambda: records(_fred_csv_fetch)},
+                                  ["fred_reader", "fred_csv"])
+    return {"fred_reader": None, "fred_csv": None, picked["source_actual"]: picked["data"]}

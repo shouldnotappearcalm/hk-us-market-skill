@@ -26,19 +26,20 @@ except Exception:
     )
 
 
-def fetch_symbol_realtime(symbol: str):
+def fetch_symbol_realtime(symbol: str, with_premarket: bool = False):
     symbol_info = normalize_symbol(symbol)
     chain = build_fallback_chain(symbol_info["market"], "realtime")
     yahoo_symbol = symbol_info["yahoo_symbol"]
     data_map = {
-        "tencent_quote": fetch_tencent_quote(symbol_info),
-        "sina_quote": fetch_sina_quote(symbol_info),
-        "yahooquery_realtime": fetch_yahooquery_realtime(yahoo_symbol),
-        "yfinance": fetch_yfinance_realtime(yahoo_symbol),
-        "yahoo_chart": fetch_yahoo_chart_realtime(yahoo_symbol),
+        "tencent_quote": lambda: fetch_tencent_quote(symbol_info),
+        "sina_quote": lambda: fetch_sina_quote(symbol_info),
+        "yahooquery_realtime": lambda: fetch_yahooquery_realtime(yahoo_symbol),
+        "yfinance": lambda: fetch_yfinance_realtime(yahoo_symbol),
+        "yahoo_chart": lambda: fetch_yahoo_chart_realtime(yahoo_symbol),
     }
     picked = pick_first_available(data_map, chain)
-    picked["data"] = enrich_realtime_premarket(picked.get("data"), yahoo_symbol)
+    if with_premarket and symbol_info["market"] == "US":
+        picked["data"] = enrich_realtime_premarket(picked.get("data"), yahoo_symbol)
     return build_response(symbol_info, "realtime", picked)
 
 
@@ -72,6 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description="HK+US 实时快照（多渠道兜底）")
     parser.add_argument("--symbol", help="单个标的，如 AAPL 或 0700.HK")
     parser.add_argument("--batch", help="批量标的，逗号分隔")
+    parser.add_argument("--with-premarket", action="store_true", help="单票美股显式补查盘前信息；默认不额外请求Yahoo")
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--json", action="store_true", dest="output_json")
     args = parser.parse_args()
@@ -85,7 +87,7 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
-    result = fetch_symbol_realtime(args.symbol)
+    result = fetch_symbol_realtime(args.symbol, args.with_premarket)
     if args.output_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

@@ -15,8 +15,8 @@ def run(symbol: str):
     chain = build_fallback_chain(symbol_info["market"], "fundamental")
     yahoo_symbol = symbol_info["yahoo_symbol"]
     data_map = {
-        "yfinance": fetch_yfinance_fundamental(yahoo_symbol),
-        "yahooquery": fetch_yahooquery_fundamental(yahoo_symbol),
+        "yfinance": lambda: fetch_yfinance_fundamental(yahoo_symbol),
+        "yahooquery": lambda: fetch_yahooquery_fundamental(yahoo_symbol),
     }
     picked = pick_first_available(data_map, chain)
     return build_response(symbol_info, "fundamental", picked)

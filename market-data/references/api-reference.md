@@ -159,3 +159,19 @@
 - `meta.requested/success/fail/success_rate/source_counts`
 - `data[].symbol/price/change_pct/volume/source_actual`
 - `failed[]`
+
+
+## fetch_news_hkus.py — 港股/美股及行业原始新闻
+
+- `--symbol NYSE:BABA`：Yahoo Search证券新闻；`09988.HK`规范化为9988.HK。
+- `--keyword 阿里巴巴`：东方财富明确关键词检索；可同时提供symbol，保留两源状态，不自动换成ADR。
+- `--source all|yahoo|eastmoney`；`--days 7`含今天的自然日；`--limit 100`为每源条数上限；`--pages 2`为东财最多页数；`--max-seconds 20`。
+- 输出 `status/symbol/keyword/meta/data`，每条为 `{source, raw}`。raw保留上游原字段，content可能仅片段。没有语义分类/情绪/相关性过滤/去重。
+- Yahoo搜索只是有限候选集，coverage_limited保守标真；空结果不证明没有新闻。
+- 整体状态区分ok/empty/partial/unavailable；全部源失败时CLI非零退出，原始错误保留。
+
+```bash
+python scripts/fetch_news_hkus.py --symbol NASDAQ:NVDA --days 7 --json
+python scripts/fetch_news_hkus.py --symbol 09988.HK --keyword 阿里巴巴 --days 7 --json
+python scripts/fetch_news_hkus.py --keyword 半导体 --source eastmoney --days 7 --json
+```

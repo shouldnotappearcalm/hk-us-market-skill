@@ -47,11 +47,11 @@ def fetch_symbol_history(symbol: str, interval: str, days: int, start: str, end:
     chain = build_fallback_chain(symbol_info["market"], "history")
     yahoo_symbol = symbol_info["yahoo_symbol"]
     data_map = {
-        "tencent_history": fetch_tencent_history(symbol_info, interval, days),
-        "sina_history": fetch_sina_history(symbol_info, interval, days),
-        "yfinance": fetch_yfinance_history(yahoo_symbol, interval, days),
-        "yahooquery_history": fetch_yahooquery_history(yahoo_symbol, interval, days),
-        "yahoo_chart": fetch_yahoo_chart_history(yahoo_symbol, interval, days),
+        "tencent_history": lambda: fetch_tencent_history(symbol_info, interval, days),
+        "sina_history": lambda: fetch_sina_history(symbol_info, interval, days),
+        "yfinance": lambda: fetch_yfinance_history(yahoo_symbol, interval, days),
+        "yahooquery_history": lambda: fetch_yahooquery_history(yahoo_symbol, interval, days),
+        "yahoo_chart": lambda: fetch_yahoo_chart_history(yahoo_symbol, interval, days),
     }
     picked = pick_first_available(data_map, chain)
     cleaned = _filter_and_trim(picked["data"], start, end, count)

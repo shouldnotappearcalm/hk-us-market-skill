@@ -27,11 +27,11 @@ except Exception:
 def _get_history(symbol_info, days: int, interval: str):
     chain = build_fallback_chain(symbol_info["market"], "technical")
     data_map = {
-        "tencent_history": fetch_tencent_history(symbol_info, interval, days),
-        "sina_history": fetch_sina_history(symbol_info, interval, days),
-        "yfinance": fetch_yfinance_history(symbol_info["yahoo_symbol"], interval, days),
-        "yahooquery_history": fetch_yahooquery_history(symbol_info["yahoo_symbol"], interval, days),
-        "yahoo_chart": fetch_yahoo_chart_history(symbol_info["yahoo_symbol"], interval, days),
+        "tencent_history": lambda: fetch_tencent_history(symbol_info, interval, days),
+        "sina_history": lambda: fetch_sina_history(symbol_info, interval, days),
+        "yfinance": lambda: fetch_yfinance_history(symbol_info["yahoo_symbol"], interval, days),
+        "yahooquery_history": lambda: fetch_yahooquery_history(symbol_info["yahoo_symbol"], interval, days),
+        "yahoo_chart": lambda: fetch_yahoo_chart_history(symbol_info["yahoo_symbol"], interval, days),
     }
     return pick_first_available(data_map, chain)
 
@@ -110,8 +110,8 @@ def run(symbol: str, days: int, interval: str):
     tail = calc_df.tail(120).copy()
     tail["time"] = tail["time"].dt.strftime("%Y-%m-%d %H:%M:%S")
     picked["data"] = {
-        "series": tail.to_dict(orient="records"),
-        "latest": tail.iloc[-1].to_dict() if not tail.empty else {},
+        "series": json.loads(tail.to_json(orient="records", date_format="iso")),
+        "latest": json.loads(tail.tail(1).to_json(orient="records", date_format="iso"))[0] if not tail.empty else {},
         "signals": _signals(tail),
     }
     return build_response(symbol_info, interval, picked)

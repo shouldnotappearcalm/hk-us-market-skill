@@ -1,0 +1,1177 @@
+{
+  "base_commit": "dcd6f0d07fd3e3609d29bb4e0ca12f162222a885",
+  "scope": "market-data only; no strategy/backtest/paper trading run",
+  "baseline": [
+    {
+      "name": "history_9988.HK",
+      "status": "ok",
+      "seconds": 13.513,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "history_AAPL",
+      "status": "ok",
+      "seconds": 14.218,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 10",
+      "stderr_tail": "Failed to get ticker 'AAPL' reason: UNIQUE constraint failed: _cookieschema.strategy\n"
+    },
+    {
+      "name": "realtime_9988.HK",
+      "status": "ok",
+      "seconds": 14.402,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "realtime_AAPL",
+      "status": "ok",
+      "seconds": 14.529,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 10",
+      "stderr_tail": ""
+    },
+    {
+      "name": "history_2899.HK",
+      "status": "ok",
+      "seconds": 4.087,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "2899.HK",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"2899.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "technical",
+      "status": "ok",
+      "seconds": 3.971,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_technical_hkus.py",
+        "AAPL",
+        "--days",
+        "120",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 10",
+      "stderr_tail": ""
+    },
+    {
+      "name": "realtime_2899.HK",
+      "status": "ok",
+      "seconds": 5.414,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "2899.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"2899.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "batch_quotes",
+      "status": "ok",
+      "seconds": 5.124,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--batch",
+        "AAPL,BABA,9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"generated_at\": \"2026-10-11 10:57:37\"\n  },\n  \"results\": [\n    {\n      \"ok\": true,\n      \"symbol\": \"AAPL\",\n      \"result\": {\n        \"symbol\": \"NASDAQ:AAPL",
+      "stderr_tail": ""
+    },
+    {
+      "name": "industry",
+      "status": "ok",
+      "seconds": 2.17,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_sector_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:38\",\n  \"data\": {\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "sector_etf",
+      "status": "ok",
+      "seconds": 1.964,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_sector_hkus.py",
+        "--sector-name",
+        "semiconductor",
+        "--days",
+        "30",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"SOXX\",\n  \"market\": \"US\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:39\",\n  \"data\": {\n   ",
+      "stderr_tail": ""
+    },
+    {
+      "name": "fundamental_9988.HK",
+      "status": "ok",
+      "seconds": 3.593,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_fundamental_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:39\",\n  \"data",
+      "stderr_tail": ""
+    },
+    {
+      "name": "fundamental_AAPL",
+      "status": "ok",
+      "seconds": 3.876,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_fundamental_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 10:57:39\",\n  \"",
+      "stderr_tail": ""
+    },
+    {
+      "name": "market_quotes",
+      "status": "ok",
+      "seconds": 1.007,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_market_realtime_hkus.py",
+        "--symbols",
+        "NASDAQ:AAPL,NYSE:BABA,9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"top\": 100,\n    \"sort\": \"change_pct_desc\",\n    \"generated_at\": \"2026-10-11 10:57:40\",\n    \"source_counts\": {\n      \"tencent_quote\": 3",
+      "stderr_tail": ""
+    },
+    {
+      "name": "macro_growth",
+      "status": "ok",
+      "seconds": 2.128,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_macro_us.py",
+        "--economic-growth",
+        "--quarters",
+        "4",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 10:57:41\",\n  \"source_stats\": {\n    \"GDPC1\": \"fred_reader\"\n  },\n  \"series\": {\n    \"GDPC1\": {\n      \"series_name\": \"Real GDP\",\n      \"source_actual\": \"fred_reader\",\n      \"fallback_used\": false,\n      \"fallback_chain\": [",
+      "stderr_tail": ""
+    },
+    {
+      "name": "macro_rates",
+      "status": "ok",
+      "seconds": 4.905,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_macro_us.py",
+        "--interest-rates",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 10:57:43\",\n  \"source_stats\": {\n    \"DGS2\": \"fred_reader\",\n    \"DGS10\": \"fred_reader\",\n    \"FEDFUNDS\": \"fred_reader\"\n  },\n  \"series\": {\n    \"DGS2\": {\n      \"series_name\": \"2Y Treasury\",\n      \"source_actual\": \"fred_read",
+      "stderr_tail": ""
+    },
+    {
+      "name": "universe",
+      "status": "ok",
+      "seconds": 3.96,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_universe_hkus.py",
+        "--market",
+        "all",
+        "--limit",
+        "20",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"total\": 16092,\n    \"generated_at\": \"2026-10-11 10:57:43\",\n    \"sources\": [\n      \"hkex_list_of_securities\",\n      \"nasdaqtrader_nasdaqlisted\",\n      \"nasdaqtrader_otherlisted\"\n    ],\n    \"returned\": 20\n  },\n  \"",
+      "stderr_tail": ""
+    }
+  ],
+  "after": [
+    {
+      "name": "history_9988.HK",
+      "status": "ok",
+      "seconds": 1.046,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "realtime_AAPL",
+      "status": "ok",
+      "seconds": 1.061,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11",
+      "stderr_tail": ""
+    },
+    {
+      "name": "realtime_9988.HK",
+      "status": "ok",
+      "seconds": 1.067,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "history_AAPL",
+      "status": "ok",
+      "seconds": 1.202,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11",
+      "stderr_tail": ""
+    },
+    {
+      "name": "history_2899.HK",
+      "status": "ok",
+      "seconds": 0.845,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_history_hkus.py",
+        "--symbol",
+        "2899.HK",
+        "--count",
+        "10",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"2899.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "realtime_2899.HK",
+      "status": "ok",
+      "seconds": 0.881,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--symbol",
+        "2899.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"2899.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:",
+      "stderr_tail": ""
+    },
+    {
+      "name": "batch_quotes",
+      "status": "ok",
+      "seconds": 0.876,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_realtime_hkus.py",
+        "--batch",
+        "AAPL,BABA,9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"generated_at\": \"2026-10-11 11:01:31\"\n  },\n  \"results\": [\n    {\n      \"ok\": true,\n      \"symbol\": \"AAPL\",\n      \"result\": {\n        \"symbol\": \"NASDAQ:AAPL",
+      "stderr_tail": ""
+    },
+    {
+      "name": "technical",
+      "status": "ok",
+      "seconds": 1.02,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_technical_hkus.py",
+        "AAPL",
+        "--days",
+        "120",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11",
+      "stderr_tail": ""
+    },
+    {
+      "name": "sector_etf",
+      "status": "ok",
+      "seconds": 1.273,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_sector_hkus.py",
+        "--sector-name",
+        "semiconductor",
+        "--days",
+        "30",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"SOXX\",\n  \"market\": \"US\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01",
+      "stderr_tail": ""
+    },
+    {
+      "name": "fundamental_9988.HK",
+      "status": "ok",
+      "seconds": 2.489,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_fundamental_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:33\",\n  \"data",
+      "stderr_tail": ""
+    },
+    {
+      "name": "industry",
+      "status": "ok",
+      "seconds": 2.502,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_sector_hkus.py",
+        "--symbol",
+        "9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"9988.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:33\",\n  \"data\": {\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "fundamental_AAPL",
+      "status": "ok",
+      "seconds": 2.815,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_fundamental_hkus.py",
+        "--symbol",
+        "AAPL",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:01:34\",\n  \"",
+      "stderr_tail": ""
+    },
+    {
+      "name": "macro_growth",
+      "status": "ok",
+      "seconds": 1.11,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_macro_us.py",
+        "--economic-growth",
+        "--quarters",
+        "4",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:01:34\",\n  \"source_stats\": {\n    \"GDPC1\": \"fred_reader\"\n  },\n  \"series\": {\n    \"GDPC1\": {\n      \"series_name\": \"Real GDP\",\n      \"source_actual\": \"fred_reader\",\n      \"fallback_used\": false,\n      \"fallback_chain\": [",
+      "stderr_tail": ""
+    },
+    {
+      "name": "market_quotes",
+      "status": "ok",
+      "seconds": 0.989,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_market_realtime_hkus.py",
+        "--symbols",
+        "NASDAQ:AAPL,NYSE:BABA,9988.HK",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"top\": 100,\n    \"sort\": \"change_pct_desc\",\n    \"generated_at\": \"2026-10-11 11:01:35\",\n    \"source_counts\": {\n      \"tencent_quote\": 3",
+      "stderr_tail": ""
+    },
+    {
+      "name": "macro_rates",
+      "status": "ok",
+      "seconds": 2.902,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_macro_us.py",
+        "--interest-rates",
+        "--days",
+        "60",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:01:35\",\n  \"source_stats\": {\n    \"DGS2\": \"fred_reader\",\n    \"DGS10\": \"fred_reader\",\n    \"FEDFUNDS\": \"fred_reader\"\n  },\n  \"series\": {\n    \"DGS2\": {\n      \"series_name\": \"2Y Treasury\",\n      \"source_actual\": \"fred_read",
+      "stderr_tail": ""
+    },
+    {
+      "name": "universe",
+      "status": "ok",
+      "seconds": 3.801,
+      "exit_code": 0,
+      "command": [
+        "/tmp/stock-data-qa-venv/bin/python",
+        "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/market-data/scripts/fetch_universe_hkus.py",
+        "--market",
+        "all",
+        "--limit",
+        "20",
+        "--json"
+      ],
+      "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"total\": 16092,\n    \"generated_at\": \"2026-10-11 11:01:37\",\n    \"sources\": [\n      \"hkex_list_of_securities\",\n      \"nasdaqtrader_nasdaqlisted\",\n      \"nasdaqtrader_otherlisted\"\n    ],\n    \"returned\": 20\n  },\n  \"",
+      "stderr_tail": ""
+    }
+  ],
+  "paired_timing": [
+    {
+      "case": "hk_quote",
+      "version": "before",
+      "round": 1,
+      "seconds": 4.831,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 104.5,
+        "open": 104.3,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 107.0,
+        "change": -2.5,
+        "change_pct": -2.3364,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "hk_quote",
+      "version": "after",
+      "round": 1,
+      "seconds": 0.381,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 107.0,
+        "open": 104.5,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 104.3,
+        "change": 2.7,
+        "change_pct": 2.5887,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "hk_quote",
+      "version": "after",
+      "round": 2,
+      "seconds": 0.367,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 107.0,
+        "open": 104.5,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 104.3,
+        "change": 2.7,
+        "change_pct": 2.5887,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "hk_quote",
+      "version": "before",
+      "round": 2,
+      "seconds": 4.32,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 104.5,
+        "open": 104.3,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 107.0,
+        "change": -2.5,
+        "change_pct": -2.3364,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "hk_quote",
+      "version": "before",
+      "round": 3,
+      "seconds": 4.614,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 104.5,
+        "open": 104.3,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 107.0,
+        "change": -2.5,
+        "change_pct": -2.3364,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "hk_quote",
+      "version": "after",
+      "round": 3,
+      "seconds": 0.38,
+      "exit_code": 0,
+      "source": "tencent_quote",
+      "data": {
+        "price": 107.0,
+        "open": 104.5,
+        "high": 107.3,
+        "low": 104.3,
+        "previous_close": 104.3,
+        "change": 2.7,
+        "change_pct": 2.5887,
+        "volume": 72349748,
+        "market_state": "CLOSED",
+        "premarket": null,
+        "name": "阿里巴巴-W",
+        "currency": "HKD",
+        "quote_time": "2026/10/09 16:08:14"
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "before",
+      "round": 1,
+      "seconds": 3.349,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "after",
+      "round": 1,
+      "seconds": 0.992,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "after",
+      "round": 2,
+      "seconds": 0.624,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "before",
+      "round": 2,
+      "seconds": 3.405,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "before",
+      "round": 3,
+      "seconds": 3.631,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    },
+    {
+      "case": "us_history",
+      "version": "after",
+      "round": 3,
+      "seconds": 0.524,
+      "exit_code": 0,
+      "source": "tencent_history",
+      "data": {
+        "count": 10
+      }
+    }
+  ],
+  "source_health": {
+    "generated_at": "2026-10-11T11:13:38.765127",
+    "us_symbol": "NASDAQ:AAPL",
+    "hk_symbol": "0700.HK",
+    "matrix": {
+      "history": {
+        "us": {
+          "sina_history": "empty",
+          "tencent_history": "ok",
+          "yahoo_chart": "ok",
+          "yfinance": "ok"
+        },
+        "hk": {
+          "tencent_history": "ok",
+          "sina_history": "ok",
+          "yfinance": "ok",
+          "yahoo_chart": "ok"
+        }
+      },
+      "realtime": {
+        "us": {
+          "tencent_quote": "ok",
+          "sina_quote": "ok",
+          "yahooquery_realtime": "ok"
+        },
+        "hk": {
+          "tencent_quote": "ok",
+          "sina_quote": "ok"
+        }
+      },
+      "macro": {
+        "fred_reader": "ok",
+        "fred_csv": "ok"
+      },
+      "fundamental": {
+        "us": {
+          "yfinance": "ok",
+          "yahooquery": "ok"
+        }
+      }
+    },
+    "diagnostics": [
+      {
+        "source": "history/us/sina_history",
+        "status": "empty",
+        "records": 0,
+        "elapsed_sec": 0.15
+      },
+      {
+        "source": "realtime/us/tencent_quote",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 0.184
+      },
+      {
+        "source": "history/us/tencent_history",
+        "status": "ok",
+        "records": 100,
+        "elapsed_sec": 0.36
+      },
+      {
+        "source": "history/us/yahoo_chart",
+        "status": "ok",
+        "records": 64,
+        "elapsed_sec": 0.43
+      },
+      {
+        "source": "realtime/us/sina_quote",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 0.119
+      },
+      {
+        "source": "history/hk/tencent_history",
+        "status": "ok",
+        "records": 100,
+        "elapsed_sec": 0.163
+      },
+      {
+        "source": "history/hk/sina_history",
+        "status": "ok",
+        "records": 5,
+        "elapsed_sec": 0.285
+      },
+      {
+        "source": "realtime/hk/tencent_quote",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 0.182
+      },
+      {
+        "source": "realtime/hk/sina_quote",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 0.125
+      },
+      {
+        "source": "history/us/yfinance",
+        "status": "ok",
+        "records": 64,
+        "elapsed_sec": 1.04
+      },
+      {
+        "source": "history/hk/yfinance",
+        "status": "ok",
+        "records": 64,
+        "elapsed_sec": 0.588
+      },
+      {
+        "source": "history/hk/yahoo_chart",
+        "status": "ok",
+        "records": 64,
+        "elapsed_sec": 0.557
+      },
+      {
+        "source": "macro/fred_reader",
+        "status": "ok",
+        "records": 259,
+        "elapsed_sec": 0.705
+      },
+      {
+        "source": "fundamental/us/yfinance",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 1.066
+      },
+      {
+        "source": "realtime/us/yahooquery_realtime",
+        "status": "ok",
+        "records": 13,
+        "elapsed_sec": 1.315
+      },
+      {
+        "source": "macro/fred_csv",
+        "status": "ok",
+        "records": 258,
+        "elapsed_sec": 0.789
+      },
+      {
+        "source": "fundamental/us/yahooquery",
+        "status": "ok",
+        "records": 11,
+        "elapsed_sec": 1.954
+      }
+    ]
+  },
+  "full_smoke": {
+    "generated_at": "2026-10-11 11:21:51",
+    "total": 21,
+    "success": 21,
+    "fail": 0,
+    "success_rate": 1.0,
+    "results": [
+      {
+        "name": "realtime_us",
+        "command": "python3 scripts/fetch_realtime_hkus.py --symbol AAPL --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 550.76,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:18\",\n  \"data\": {\n    \"price\": 336.64,\n    \"open\": 331.7,\n    \"high\": 338.61,\n    \"low\": 330.7,\n    \"previous_close\": 340.42,\n    \"change\": -3.78,\n    \"change_pct\": -1.1104,\n    \"volume\": 37881199,\n    \"market_state\": \"CLOSED\",\n    \"premarket\": null,\n    \"name\": \"苹果\",\n    \"currency\": \"USD\",\n    \"quote_time\": \"2026-10-09 16:00:01\"\n  },\n  \"source_",
+        "stderr_preview": ""
+      },
+      {
+        "name": "realtime_hk",
+        "command": "python3 scripts/fetch_realtime_hkus.py --symbol 0700.HK --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 400.66,
+        "stdout_preview": "{\n  \"symbol\": \"0700.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"tencent_quote\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:18\",\n  \"data\": {\n    \"price\": 424.8,\n    \"open\": 415.0,\n    \"high\": 425.8,\n    \"low\": 414.8,\n    \"previous_close\": 411.4,\n    \"change\": 13.4,\n    \"change_pct\": 3.2572,\n    \"volume\": 20422500,\n    \"market_state\": \"CLOSED\",\n    \"premarket\": null,\n    \"name\": \"腾讯控股\",\n    \"currency\": \"HKD\",\n    \"quote_time\": \"2026/10/09 16:08:14\"\n  },\n  \"source_errors\"",
+        "stderr_preview": ""
+      },
+      {
+        "name": "realtime_batch",
+        "command": "python3 scripts/fetch_realtime_hkus.py --batch AAPL,TSLA,0700.HK --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 452.81,
+        "stdout_preview": "{\n  \"meta\": {\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"generated_at\": \"2026-10-11 11:21:18\"\n  },\n  \"results\": [\n    {\n      \"ok\": true,\n      \"symbol\": \"AAPL\",\n      \"result\": {\n        \"symbol\": \"NASDAQ:AAPL\",\n        \"market\": \"US\",\n        \"timeframe\": \"realtime\",\n        \"source_primary\": \"tencent_quote\",\n        \"source_actual\": \"tencent_quote\",\n        \"fallback_used\": false,\n        \"fallback_chain\": [\n          \"tencent_quote\"\n        ],\n        \"updated_at\": \"2026-10-11 11:21:18\",\n        \"data\": {\n          \"price\": 336.64,\n          \"open\": ",
+        "stderr_preview": ""
+      },
+      {
+        "name": "history_us",
+        "command": "python3 scripts/fetch_history_hkus.py --symbol AAPL --interval 1d --days 120 --count 60 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 645.74,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:19\",\n  \"data\": [\n    {\n      \"time\": \"2026-07-17 00:00:00\",\n      \"open\": 331.98,\n      \"high\": 334.99,\n      \"low\": 329.0,\n      \"close\": 333.74,\n      \"volume\": 63407059\n    },\n    {\n      \"time\": \"2026-07-20 00:00:00\",\n      \"open\": 333.51,\n      \"high\": 333.71,\n      \"low\": 323.68,\n      \"close\": 326.59,\n      \"volume\": 53468008\n    },\n    ",
+        "stderr_preview": ""
+      },
+      {
+        "name": "history_hk",
+        "command": "python3 scripts/fetch_history_hkus.py --symbol 0700.HK --interval 1d --days 120 --count 60 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 345.45,
+        "stdout_preview": "{\n  \"symbol\": \"0700.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:19\",\n  \"data\": [\n    {\n      \"time\": \"2026-07-17 00:00:00\",\n      \"open\": 488.8,\n      \"high\": 488.8,\n      \"low\": 458.0,\n      \"close\": 461.6,\n      \"volume\": 36237657\n    },\n    {\n      \"time\": \"2026-07-20 00:00:00\",\n      \"open\": 465.6,\n      \"high\": 481.8,\n      \"low\": 465.6,\n      \"close\": 477.8,\n      \"volume\": 30822839\n    },\n    {\n      \"ti",
+        "stderr_preview": ""
+      },
+      {
+        "name": "history_batch",
+        "command": "python3 scripts/fetch_history_hkus.py --batch AAPL,MSFT,0700.HK --interval 1d --days 120 --count 60 --workers 4 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 566.72,
+        "stdout_preview": "{\n  \"meta\": {\n    \"requested\": 3,\n    \"success\": 3,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"generated_at\": \"2026-10-11 11:21:20\"\n  },\n  \"results\": [\n    {\n      \"ok\": true,\n      \"symbol\": \"AAPL\",\n      \"result\": {\n        \"symbol\": \"NASDAQ:AAPL\",\n        \"market\": \"US\",\n        \"timeframe\": \"1d\",\n        \"source_primary\": \"tencent_history\",\n        \"source_actual\": \"tencent_history\",\n        \"fallback_used\": false,\n        \"fallback_chain\": [\n          \"tencent_history\"\n        ],\n        \"updated_at\": \"2026-10-11 11:21:20\",\n        \"data\": [\n          {\n            \"time\": \"2026-07-17 0",
+        "stderr_preview": ""
+      },
+      {
+        "name": "technical_us",
+        "command": "python3 scripts/fetch_technical_hkus.py AAPL --days 180 --interval 1d --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 567.91,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:21\",\n  \"data\": {\n    \"series\": [\n      {\n        \"time\": \"2026-04-21 00:00:00\",\n        \"open\": 271.5,\n        \"high\": 272.8,\n        \"low\": 265.4,\n        \"close\": 266.17,\n        \"volume\": 50209755,\n        \"ma_5\": 267.856,\n        \"ma_20\": 258.373,\n        \"ma_60\": 261.1883333333,\n        \"macd_dif\": 2.9732996673,\n        \"macd_dea\": 1.26556",
+        "stderr_preview": ""
+      },
+      {
+        "name": "technical_hk",
+        "command": "python3 scripts/fetch_technical_hkus.py 0700.HK --days 180 --interval 1d --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 381.94,
+        "stdout_preview": "{\n  \"symbol\": \"0700.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:21\",\n  \"data\": {\n    \"series\": [\n      {\n        \"time\": \"2026-04-20 00:00:00\",\n        \"open\": 509.5,\n        \"high\": 526.5,\n        \"low\": 504.5,\n        \"close\": 522.5,\n        \"volume\": 23428202,\n        \"ma_5\": 508.44,\n        \"ma_20\": 501.625,\n        \"ma_60\": 537.5916666667,\n        \"macd_dif\": -5.1760952422,\n        \"macd_dea\": -9.368566591",
+        "stderr_preview": ""
+      },
+      {
+        "name": "fundamental_us",
+        "command": "python3 scripts/fetch_fundamental_hkus.py --symbol AAPL --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 1736.94,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:23\",\n  \"data\": {\n    \"currency\": \"USD\",\n    \"market_cap\": 4912984883200,\n    \"pe_ttm\": 38.605507,\n    \"pe_forward\": 35.11173,\n    \"ps\": 10.5243,\n    \"pb\": 45.739132,\n    \"ev_ebitda\": 29.382,\n    \"peg\": 2.69,\n    \"beta\": 1.069,\n    \"dividend_yield\": 0.32,\n    \"sector\": \"Technology\",\n    \"industry\": \"Consumer Electronics\",\n    \"institutional_holders\": [\n    ",
+        "stderr_preview": ""
+      },
+      {
+        "name": "fundamental_hk",
+        "command": "python3 scripts/fetch_fundamental_hkus.py --symbol 0700.HK --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 2213.01,
+        "stdout_preview": "{\n  \"symbol\": \"0700.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"fundamental\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:25\",\n  \"data\": {\n    \"currency\": \"HKD\",\n    \"market_cap\": 3825543938048,\n    \"pe_ttm\": 14.952481,\n    \"pe_forward\": 11.772707,\n    \"ps\": 4.851777,\n    \"pb\": 2.8762453,\n    \"ev_ebitda\": 13.209,\n    \"peg\": 1.31,\n    \"beta\": 0.742,\n    \"dividend_yield\": 1.25,\n    \"sector\": \"Communication Services\",\n    \"industry\": \"Internet Content & Information\",\n    \"institutio",
+        "stderr_preview": ""
+      },
+      {
+        "name": "sector_etf",
+        "command": "python3 scripts/fetch_sector_hkus.py --sector-name 半导体 --days 60 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 540.44,
+        "stdout_preview": "{\n  \"symbol\": \"SOXX\",\n  \"market\": \"US\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"tencent_history\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"tencent_history\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:25\",\n  \"data\": {\n    \"sector_name\": \"半导体\",\n    \"mapped_etf\": \"SOXX\",\n    \"proxy_type\": \"US ETF proxy, not actual industry constituents\",\n    \"period_days\": 60,\n    \"period_return_pct\": -1.2219,\n    \"bars\": [\n      {\n        \"time\": \"2026-07-17 00:00:00\",\n        \"open\": 508.55,\n        \"high\": 533.19,\n        \"low\": 498.54,\n        \"close\": 521.81",
+        "stderr_preview": ""
+      },
+      {
+        "name": "sector_symbol",
+        "command": "python3 scripts/fetch_sector_hkus.py --symbol 0700.HK --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 2347.52,
+        "stdout_preview": "{\n  \"symbol\": \"0700.HK\",\n  \"market\": \"HK\",\n  \"timeframe\": \"sector\",\n  \"source_primary\": \"yfinance\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": false,\n  \"fallback_chain\": [\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:28\",\n  \"data\": {\n    \"sector\": \"Communication Services\",\n    \"industry\": \"Internet Content & Information\",\n    \"currency\": \"HKD\"\n  },\n  \"source_errors\": {},\n  \"source_elapsed_sec\": {\n    \"yfinance\": 2.108\n  }\n}\n",
+        "stderr_preview": ""
+      },
+      {
+        "name": "macro_interest",
+        "command": "python3 scripts/fetch_macro_us.py --interest-rates --days 365 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 2918.99,
+        "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:21:31\",\n  \"source_stats\": {\n    \"DGS2\": \"fred_reader\",\n    \"DGS10\": \"fred_reader\",\n    \"FEDFUNDS\": \"fred_reader\"\n  },\n  \"series\": {\n    \"DGS2\": {\n      \"series_name\": \"2Y Treasury\",\n      \"source_actual\": \"fred_reader\",\n      \"fallback_used\": false,\n      \"fallback_chain\": [\n        \"fred_reader\"\n      ],\n      \"data\": [\n        {\n          \"time\": \"2025-10-13 00:00:00\",\n          \"value\": null\n        },\n        {\n          \"time\": \"2025-10-14 00:00:00\",\n          \"value\": 3.48\n        },\n        {\n          \"time\": \"2025-10-15 00:00:00\",\n          \"value\": ",
+        "stderr_preview": ""
+      },
+      {
+        "name": "macro_inflation_employment",
+        "command": "python3 scripts/fetch_macro_us.py --inflation-employment --months 24 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 1214.15,
+        "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:21:32\",\n  \"source_stats\": {\n    \"CPIAUCSL\": \"fred_reader\",\n    \"UNRATE\": \"fred_reader\"\n  },\n  \"series\": {\n    \"CPIAUCSL\": {\n      \"series_name\": \"CPI\",\n      \"source_actual\": \"fred_reader\",\n      \"fallback_used\": false,\n      \"fallback_chain\": [\n        \"fred_reader\"\n      ],\n      \"data\": [\n        {\n          \"time\": \"2024-10-01 00:00:00\",\n          \"value\": 315.631\n        },\n        {\n          \"time\": \"2024-11-01 00:00:00\",\n          \"value\": 316.528\n        },\n        {\n          \"time\": \"2024-12-01 00:00:00\",\n          \"value\": 317.604\n        },\n     ",
+        "stderr_preview": ""
+      },
+      {
+        "name": "macro_growth",
+        "command": "python3 scripts/fetch_macro_us.py --economic-growth --quarters 20 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 1389.23,
+        "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:21:33\",\n  \"source_stats\": {\n    \"GDPC1\": \"fred_reader\"\n  },\n  \"series\": {\n    \"GDPC1\": {\n      \"series_name\": \"Real GDP\",\n      \"source_actual\": \"fred_reader\",\n      \"fallback_used\": false,\n      \"fallback_chain\": [\n        \"fred_reader\"\n      ],\n      \"data\": [\n        {\n          \"time\": \"2021-10-01 00:00:00\",\n          \"value\": 22001.64\n        },\n        {\n          \"time\": \"2022-01-01 00:00:00\",\n          \"value\": 21945.682\n        },\n        {\n          \"time\": \"2022-04-01 00:00:00\",\n          \"value\": 21976.292\n        },\n        {\n          \"time\": \"2",
+        "stderr_preview": ""
+      },
+      {
+        "name": "healthcheck",
+        "command": "python3 scripts/healthcheck_sources.py --us-symbol AAPL --hk-symbol 0700.HK",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 6850.66,
+        "stdout_preview": "{\n  \"generated_at\": \"2026-10-11T11:21:34.023663\",\n  \"us_symbol\": \"NASDAQ:AAPL\",\n  \"hk_symbol\": \"0700.HK\",\n  \"matrix\": {\n    \"history\": {\n      \"us\": {\n        \"sina_history\": \"empty\",\n        \"yahoo_chart\": \"ok\",\n        \"tencent_history\": \"ok\",\n        \"yfinance\": \"ok\"\n      },\n      \"hk\": {\n        \"tencent_history\": \"ok\",\n        \"sina_history\": \"ok\",\n        \"yfinance\": \"ok\",\n        \"yahoo_chart\": \"ok\"\n      }\n    },\n    \"realtime\": {\n      \"us\": {\n        \"tencent_quote\": \"ok\",\n        \"sina_quote\": \"ok\",\n        \"yahooquery_realtime\": \"ok\"\n      },\n      \"hk\": {\n        \"sina_quote\": \"o",
+        "stderr_preview": ""
+      },
+      {
+        "name": "universe_all",
+        "command": "python3 scripts/fetch_universe_hkus.py --market all --limit 200 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 3506.66,
+        "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"total\": 16092,\n    \"generated_at\": \"2026-10-11 11:21:44\",\n    \"sources\": [\n      \"hkex_list_of_securities\",\n      \"nasdaqtrader_nasdaqlisted\",\n      \"nasdaqtrader_otherlisted\"\n    ],\n    \"returned\": 200\n  },\n  \"data\": [\n    {\n      \"symbol\": \"CBOE:AAAA\",\n      \"ticker\": \"AAAA\",\n      \"name\": \"Amplius Aggressive Asset Allocation ETF\",\n      \"market\": \"US\",\n      \"exchange\": \"CBOE\",\n      \"market_category\": \"Z\",\n      \"source\": \"nasdaqtrader_otherlisted\"\n    },\n    {\n      \"symbol\": \"CBOE:AAAU\",\n      \"ticker\": \"AAAU\",\n      \"name\": \"Goldman Sachs Physical",
+        "stderr_preview": ""
+      },
+      {
+        "name": "market_realtime_all",
+        "command": "python3 scripts/fetch_market_realtime_hkus.py --market all --universe-limit 120 --top 120 --sort change_pct_desc --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 3725.88,
+        "stdout_preview": "{\n  \"meta\": {\n    \"market\": \"all\",\n    \"requested\": 240,\n    \"success\": 240,\n    \"fail\": 0,\n    \"success_rate\": 1.0,\n    \"top\": 120,\n    \"sort\": \"change_pct_desc\",\n    \"generated_at\": \"2026-10-11 11:21:47\",\n    \"source_counts\": {\n      \"tencent_quote\": 240\n    }\n  },\n  \"data\": [\n    {\n      \"symbol\": \"CBOE:ASTN\",\n      \"name\": \"2倍做空AST SpaceMobile ETF-Defiance\",\n      \"price\": 23.07,\n      \"previous_close\": 18.96,\n      \"open\": 20.95,\n      \"change\": 4.11,\n      \"change_pct\": 21.6772,\n      \"volume\": 483544,\n      \"market_state\": \"CLOSED\",\n      \"premarket\": null,\n      \"market\": \"US\",\n      \"",
+        "stderr_preview": ""
+      },
+      {
+        "name": "forced_realtime_us_failover",
+        "command": "python3 scripts/fetch_realtime_hkus.py --symbol AAPL --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 315.18,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"realtime\",\n  \"source_primary\": \"tencent_quote\",\n  \"source_actual\": \"sina_quote\",\n  \"fallback_used\": true,\n  \"fallback_chain\": [\n    \"tencent_quote\",\n    \"sina_quote\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:48\",\n  \"data\": {\n    \"price\": 336.64,\n    \"open\": 338.61,\n    \"high\": 345.34,\n    \"low\": 330.7,\n    \"previous_close\": 331.695,\n    \"change\": 4.945,\n    \"change_pct\": 1.4908,\n    \"volume\": 37881199,\n    \"market_state\": \"CLOSED\",\n    \"premarket\": null,\n    \"name\": \"苹果\",\n    \"currency\": \"USD\",\n    \"quote_time\": \"2026-10-10 09:48:00\"\n",
+        "stderr_preview": ""
+      },
+      {
+        "name": "forced_history_us_failover",
+        "command": "python3 scripts/fetch_history_hkus.py --symbol AAPL --interval 1d --days 120 --count 60 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 1197.66,
+        "stdout_preview": "{\n  \"symbol\": \"NASDAQ:AAPL\",\n  \"market\": \"US\",\n  \"timeframe\": \"1d\",\n  \"source_primary\": \"tencent_history\",\n  \"source_actual\": \"yfinance\",\n  \"fallback_used\": true,\n  \"fallback_chain\": [\n    \"tencent_history\",\n    \"sina_history\",\n    \"yfinance\"\n  ],\n  \"updated_at\": \"2026-10-11 11:21:49\",\n  \"data\": [\n    {\n      \"time\": \"2026-07-17 00:00:00\",\n      \"open\": 331.9800109863281,\n      \"high\": 334.989990234375,\n      \"low\": 329.0,\n      \"close\": 333.739990234375,\n      \"volume\": 63407100\n    },\n    {\n      \"time\": \"2026-07-20 00:00:00\",\n      \"open\": 333.510009765625,\n      \"high\": 333.7099914550781,\n",
+        "stderr_preview": ""
+      },
+      {
+        "name": "forced_macro_failover",
+        "command": "python3 scripts/fetch_macro_us.py --interest-rates --days 365 --json",
+        "success": true,
+        "exit_code": 0,
+        "elapsed_ms": 2446.19,
+        "stdout_preview": "{\n  \"generated_at\": \"2026-10-11 11:21:51\",\n  \"source_stats\": {\n    \"DGS2\": \"fred_csv\",\n    \"DGS10\": \"fred_csv\",\n    \"FEDFUNDS\": \"fred_csv\"\n  },\n  \"series\": {\n    \"DGS2\": {\n      \"series_name\": \"2Y Treasury\",\n      \"source_actual\": \"fred_csv\",\n      \"fallback_used\": true,\n      \"fallback_chain\": [\n        \"fred_reader\",\n        \"fred_csv\"\n      ],\n      \"data\": [\n        {\n          \"time\": \"2025-10-14 00:00:00\",\n          \"value\": 3.48\n        },\n        {\n          \"time\": \"2025-10-15 00:00:00\",\n          \"value\": 3.5\n        },\n        {\n          \"time\": \"2025-10-16 00:00:00\",\n          \"va",
+        "stderr_preview": ""
+      }
+    ]
+  },
+  "news": {
+    "hk-alibaba-news-final.json": {
+      "status": "ok",
+      "meta": {
+        "window_start": "2026-10-05T00:00:00+08:00",
+        "window_end": "2026-10-11T11:20:21.570387+08:00",
+        "fetched_at": "2026-10-11T11:20:22.596831+08:00",
+        "count": 100,
+        "limit_per_source": 100,
+        "sources": [
+          {
+            "source": "eastmoney_search",
+            "status": "ok",
+            "coverage_limited": true,
+            "errors": [],
+            "elapsed_sec": 0.182
+          },
+          {
+            "source": "yahoo_news",
+            "status": "empty",
+            "fetched": 0,
+            "coverage_limited": false,
+            "unknown_timestamps": 0,
+            "elapsed_sec": 1.026
+          }
+        ],
+        "notes": "data contains unmodified provider records under raw; no semantic filtering, classification, deduplication or sentiment. Content may be snippets; source/page limits apply."
+      }
+    },
+    "hk-zijin-news-final.json": {
+      "status": "ok",
+      "meta": {
+        "window_start": "2026-10-05T00:00:00+08:00",
+        "window_end": "2026-10-11T11:19:02.282879+08:00",
+        "fetched_at": "2026-10-11T11:19:03.338389+08:00",
+        "count": 76,
+        "limit_per_source": 100,
+        "sources": [
+          {
+            "source": "eastmoney_search",
+            "status": "ok",
+            "coverage_limited": false,
+            "errors": [],
+            "elapsed_sec": 0.161
+          },
+          {
+            "source": "yahoo_news",
+            "status": "empty",
+            "fetched": 0,
+            "coverage_limited": false,
+            "unknown_timestamps": 0,
+            "elapsed_sec": 1.055
+          }
+        ],
+        "notes": "data contains unmodified provider records under raw; no semantic filtering, classification, deduplication or sentiment. Content may be snippets; source/page limits apply."
+      }
+    },
+    "us-baba-news-final.json": {
+      "status": "ok",
+      "meta": {
+        "window_start": "2026-10-05T00:00:00+08:00",
+        "window_end": "2026-10-11T11:14:26.754506+08:00",
+        "fetched_at": "2026-10-11T11:14:27.880244+08:00",
+        "count": 25,
+        "limit_per_source": 50,
+        "sources": [
+          {
+            "source": "yahoo_news",
+            "status": "ok",
+            "fetched": 49,
+            "coverage_limited": false,
+            "unknown_timestamps": 0,
+            "elapsed_sec": 1.125
+          }
+        ],
+        "notes": "data contains unmodified provider records under raw; no semantic filtering, classification, deduplication or sentiment. Content may be snippets; source/page limits apply."
+      }
+    },
+    "us-nvda-news-final.json": {
+      "status": "ok",
+      "meta": {
+        "window_start": "2026-10-05T00:00:00+08:00",
+        "window_end": "2026-10-11T11:19:06.212310+08:00",
+        "fetched_at": "2026-10-11T11:19:07.671624+08:00",
+        "count": 49,
+        "limit_per_source": 50,
+        "sources": [
+          {
+            "source": "yahoo_news",
+            "status": "ok",
+            "fetched": 49,
+            "coverage_limited": false,
+            "unknown_timestamps": 0,
+            "elapsed_sec": 1.459
+          }
+        ],
+        "notes": "data contains unmodified provider records under raw; no semantic filtering, classification, deduplication or sentiment. Content may be snippets; source/page limits apply."
+      }
+    }
+  },
+  "raw_directory": "/Users/calm/dev/git_repo/ai-stock/stock-data/hk-us-market-skill/reports/raw/data-health-2026-10-11"
+}
